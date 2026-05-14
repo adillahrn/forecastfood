@@ -43,4 +43,4 @@ npm run dev
 - **Frontend:** React, Vite, Tailwind CSS, Axios
 - **Backend:** Node.js, Express.js
 - **AI Model:** TensorFlow, Python
-- **Database:** TBD
+- **Database:** Supabase
