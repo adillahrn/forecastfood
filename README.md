@@ -23,7 +23,7 @@ forecastfood/
 └── backend/          # Node.js + Express.js
 ```
 
-## 🚀 Cara Menjalankan
+##  Cara Menjalankan
 
 ### Frontend
 ```bash
