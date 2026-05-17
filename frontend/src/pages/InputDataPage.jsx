@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import PredictionLoading from "../components/PredictionLoading";
 import { useNavigate } from "react-router-dom";
 import {
   Upload,
@@ -43,6 +44,7 @@ const steps = ["Data Import", "AI Processing", "View Results"];
 export default function InputDataPage() {
   const navigate = useNavigate();
   const fileRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [manualEntries, setManualEntries] = useState([
@@ -75,6 +77,8 @@ export default function InputDataPage() {
       prev.map((e) => (e.id === id ? { ...e, [field]: value } : e))
     );
   };
+
+  if (isLoading) return <PredictionLoading />;
 
   return (
     <AppLayout>
@@ -275,7 +279,7 @@ export default function InputDataPage() {
                 chain trends to generate your next 7-day forecast.
               </p>
               <button
-                onClick={() => navigate("/predictions")}
+                onClick={() => setIsLoading(true)}
                 className="w-full bg-white text-primary-800 font-semibold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-50 transition-colors"
               >
                 <Sparkles size={16} />
