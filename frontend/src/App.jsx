@@ -5,6 +5,9 @@ import InputDataPage from './pages/InputDataPage'
 import NotFoundPage from './pages/NotFoundPage'
 import PredictionResultPage from './pages/PredictionResultPage'
 import StockRecommendationPage from './pages/StockRecommendationPage'
+import AboutPage from './pages/AboutPage'
+import HistoryPage from './pages/HistoryPage'
+import AccountSettingsPage from './pages/AccountSettingsPage'
 
 function App() {
   return (
@@ -15,6 +18,9 @@ function App() {
       <Route path="*" element={<NotFoundPage />} />
       <Route path="/predictions" element={<PredictionResultPage />} />
       <Route path="/stock-recommendation" element={<StockRecommendationPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/history" element={<HistoryPage />} />
+      <Route path="/settings" element={<AccountSettingsPage />} />
     </Routes>
   )
 }
