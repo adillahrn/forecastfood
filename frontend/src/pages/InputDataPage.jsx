@@ -1,3 +1,4 @@
+import { runPrediction } from "../services/predictionService";
 import { useState, useRef } from "react";
 import PredictionLoading from "../components/PredictionLoading";
 import { useNavigate } from "react-router-dom";
@@ -45,12 +46,36 @@ export default function InputDataPage() {
   const navigate = useNavigate();
   const fileRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [manualEntries, setManualEntries] = useState([
     { id: 1, name: "", stock: "", unit: "Kilograms", date: "" },
   ]);
 
+  const handleRunPrediction = async () => {
+    setIsLoading(true);
+    try {
+      if (uploadedFile) {
+        const result = await runPrediction(uploadedFile);
+        setSessionId(result.data.session_id);
+      } else {
+        // Manual entry
+        const formData = new FormData();
+        const csvContent = [
+          "item_name,quantity,unit,date",
+          ...manualEntries.map(e => `${e.name},${e.stock},${e.unit},${e.date}`)
+        ].join("\n");
+        const blob = new Blob([csvContent], { type: "text/csv" });
+        const file = new File([blob], "manual_entry.csv");
+        const result = await runPrediction(file);
+        setSessionId(result.data.session_id);
+      }
+    } catch (error) {
+      console.error("Prediction error:", error);
+      setIsLoading(false);
+    }
+  };
   const handleFile = (file) => {
     if (file) setUploadedFile(file);
   };
@@ -78,7 +103,11 @@ export default function InputDataPage() {
     );
   };
 
-  if (isLoading) return <PredictionLoading />;
+  if (isLoading) return (
+    <PredictionLoading 
+      onComplete={() => navigate("/predictions", { state: { sessionId } })} 
+    />
+  );
 
   return (
     <AppLayout>
@@ -282,8 +311,13 @@ export default function InputDataPage() {
                 onClick={() => setIsLoading(true)}
                 className="w-full bg-white text-primary-800 font-semibold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-50 transition-colors"
               >
+              <button
+                onClick={handleRunPrediction}
+                className="w-full bg-white text-primary-800 font-semibold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-50 transition-colors"
+              >
                 <Sparkles size={16} />
                 Run Prediction
+                </button>
               </button>
             </div>
 
