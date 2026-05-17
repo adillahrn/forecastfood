@@ -11,6 +11,8 @@ import {
   Sparkles,
   ShieldCheck,
   RefreshCw,
+  Bell,
+  Settings,
 } from "lucide-react";
 import AppLayout from "../components/layout/AppLayout";
 
@@ -78,40 +80,22 @@ export default function InputDataPage() {
     <AppLayout>
       <div className="p-8">
         {/* ── Header ── */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-primary-900">Input Data</h1>
-          <p className="text-gray-400 text-sm mt-1">
-            Upload your historical sales data or enter manually
-          </p>
-        </div>
-
-        {/* ── Stepper ── */}
-        <div className="flex items-center gap-0 mb-8">
-          {steps.map((step, i) => (
-            <div key={i} className="flex items-center">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                    i === 0
-                      ? "bg-primary-800 text-white"
-                      : "bg-gray-200 text-gray-400"
-                  }`}
-                >
-                  {i === 0 ? <CheckCircle size={14} /> : i + 1}
-                </div>
-                <p
-                  className={`text-sm font-medium ${
-                    i === 0 ? "text-primary-800" : "text-gray-400"
-                  }`}
-                >
-                  {step}
-                </p>
-              </div>
-              {i < steps.length - 1 && (
-                <div className="w-16 h-0.5 bg-gray-200 mx-3" />
-              )}
-            </div>
-          ))}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-primary-900">Input Data</h1>
+            <p className="text-gray-400 text-sm mt-1">
+              Upload your historical sales data or enter manually
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="w-9 h-9 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:text-primary-800 transition-colors">
+              <Bell size={16} />
+            </button>
+            <button className="w-9 h-9 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:text-primary-800 transition-colors">
+              <Settings size={16} />
+            </button>
+            <div className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-800 text-xs font-bold">U</div>
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-6">

@@ -7,6 +7,7 @@ import {
   History,
   Info,
   LogOut,
+  Settings,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 
@@ -60,7 +61,7 @@ export default function Sidebar() {
         {/* User info */}
         <div
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 cursor-pointer mb-1"
-          onClick={() => navigate("/profile")}
+          onClick={() => navigate("/settings")}
         >
           <div className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-800 text-xs font-bold">
             U
@@ -70,6 +71,15 @@ export default function Sidebar() {
             <p className="text-gray-400 text-xs">Inventory Manager</p>
           </div>
         </div>
+
+        {/* Settings */}
+        <button
+          onClick={() => navigate("/settings")}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-primary-800 transition-all mb-1"
+        >
+          <Settings size={18} />
+          Settings
+        </button>
 
         {/* Logout */}
         <button

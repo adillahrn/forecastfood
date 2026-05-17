@@ -1,0 +1,479 @@
+import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  User,
+  Lock,
+  Building2,
+  Bell,
+  Settings,
+  Camera,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  LogOut,
+} from "lucide-react";
+import AppLayout from "../components/layout/AppLayout";
+
+// ── Tab Config ──
+const tabs = [
+  { id: "profile", label: "Profile Information", icon: <User size={16} /> },
+  { id: "security", label: "Security & Password", icon: <Lock size={16} /> },
+  { id: "business", label: "Business Information", icon: <Building2 size={16} /> },
+  { id: "notifications", label: "Notifications", icon: <Bell size={16} /> },
+  { id: "preferences", label: "Preferences", icon: <Settings size={16} /> },
+];
+
+// ── Toggle Component ──
+function Toggle({ value, onChange }) {
+  return (
+    <button
+      onClick={() => onChange(!value)}
+      className={`relative w-11 h-6 rounded-full transition-colors ${value ? "bg-primary-700" : "bg-gray-200"}`}
+    >
+      <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${value ? "left-5" : "left-0.5"}`} />
+    </button>
+  );
+}
+
+// ── Password Strength ──
+function PasswordStrength({ password }) {
+  const strength = password.length === 0 ? 0 : password.length < 6 ? 1 : password.length < 10 ? 2 : 3;
+  const labels = ["", "Weak", "Medium", "Strong"];
+  const colors = ["", "bg-red-400", "bg-yellow-400", "bg-primary-600"];
+  return (
+    <div className="mt-2">
+      <div className="flex gap-1 mb-1">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className={`h-1 flex-1 rounded-full ${strength >= i ? colors[strength] : "bg-gray-200"}`} />
+        ))}
+      </div>
+      {password.length > 0 && (
+        <p className={`text-xs font-medium ${strength === 1 ? "text-red-500" : strength === 2 ? "text-yellow-500" : "text-primary-600"}`}>
+          Strength: {labels[strength]}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export default function AccountSettingsPage() {
+  const navigate = useNavigate();
+  const fileRef = useRef();
+  const [activeTab, setActiveTab] = useState("profile");
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+
+  // Profile state
+  const [profile, setProfile] = useState({
+    name: "Elena Rodriguez",
+    email: "elena.r@forecastfood.ai",
+    phone: "+1 (555) 000-0000",
+    role: "Operations Lead",
+    bio: "",
+  });
+
+  // Business state
+  const [business, setBusiness] = useState({
+    name: "ForecastFood Global",
+    type: "Supplier",
+    location: "London, UK",
+    staff: "45",
+  });
+
+  // Notification state
+  const [notifs, setNotifs] = useState({
+    criticalStock: true,
+    newForecast: true,
+    newItem: false,
+    manualEntry: true,
+    email: true,
+    inApp: true,
+    push: false,
+  });
+
+  // Preferences state
+  const [prefs, setPrefs] = useState({
+    language: "English",
+    currency: "USD ($)",
+    dateFormat: "MM/DD/YYYY",
+    defaultView: "Dashboard",
+    theme: "Light",
+  });
+
+  const handlePhoto = (e) => {
+    const file = e.target.files[0];
+    if (file) setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  return (
+    <AppLayout>
+      <div className="p-8">
+        {/* ── Top Bar ── */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-primary-900">Account Settings</h1>
+            <p className="text-gray-400 text-sm mt-0.5">Manage your profile and preferences</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="w-9 h-9 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:text-primary-800 transition-colors">
+              <Bell size={16} />
+            </button>
+            <div className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-800 text-xs font-bold">U</div>
+          </div>
+        </div>
+
+        {/* ── Main Layout ── */}
+        <div className="grid grid-cols-4 gap-6">
+          {/* LEFT — Tab Nav */}
+          <div className="col-span-1">
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-3 px-5 py-4 text-sm font-medium transition-colors border-l-4 ${
+                    activeTab === tab.id
+                      ? "border-l-primary-800 bg-primary-50 text-primary-800"
+                      : "border-l-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  }`}
+                >
+                  {tab.icon}
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* RIGHT — Content */}
+          <div className="col-span-3">
+
+            {/* ── PROFILE TAB ── */}
+            {activeTab === "profile" && (
+              <div className="bg-white rounded-2xl shadow-sm p-8">
+                <h2 className="text-xl font-bold text-primary-900 mb-6">Profile Information</h2>
+
+                {/* Avatar */}
+                <div className="flex items-center gap-5 mb-8">
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full bg-primary-200 flex items-center justify-center overflow-hidden">
+                      {photoPreview ? (
+                        <img src={photoPreview} alt="avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-primary-800 text-2xl font-bold">ER</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => fileRef.current.click()}
+                      className="absolute bottom-0 right-0 w-6 h-6 bg-primary-800 rounded-full flex items-center justify-center"
+                    >
+                      <Camera size={12} className="text-white" />
+                    </button>
+                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => fileRef.current.click()}
+                      className="bg-primary-800 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-primary-700 transition-colors"
+                    >
+                      Upload Photo
+                    </button>
+                    {photoPreview && (
+                      <button
+                        onClick={() => setPhotoPreview(null)}
+                        className="text-sm text-red-500 font-medium hover:underline"
+                      >
+                        Remove Photo
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Form Fields */}
+                <div className="grid grid-cols-2 gap-5 mb-5">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Full Name</label>
+                    <input
+                      type="text"
+                      value={profile.name}
+                      onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Email Address</label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        value={profile.email}
+                        onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors pr-24"
+                      />
+                      <span className="absolute right-3 top-2.5 text-xs font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        ✓ VERIFIED
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Phone Number</label>
+                    <input
+                      type="text"
+                      value={profile.phone}
+                      onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Role / Job Title</label>
+                    <input
+                      type="text"
+                      value={profile.role}
+                      onChange={(e) => setProfile({ ...profile, role: e.target.value })}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors"
+                    />
+                  </div>
+                </div>
+                <div className="mb-8">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Bio / About</label>
+                  <textarea
+                    value={profile.bio}
+                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                    placeholder="Brief description of your role and responsibilities..."
+                    rows={4}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors resize-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3">
+                  <button className="border border-gray-200 text-gray-600 text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
+                    Cancel
+                  </button>
+                  <button className="bg-primary-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-700 transition-colors">
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── SECURITY TAB ── */}
+            {activeTab === "security" && (
+              <div className="flex flex-col gap-5">
+                <div className="bg-white rounded-2xl shadow-sm p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-primary-900">Security & Password</h2>
+                    <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded">PREVIEW ONLY</span>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Current Password</label>
+                    <input
+                      type="password"
+                      defaultValue="••••••••••••"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-2">
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">New Password</label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors pr-10"
+                        />
+                        <button
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                      <PasswordStrength password={newPassword} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Confirm New Password</label>
+                      <input
+                        type="password"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <button className="mt-4 bg-primary-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-700 transition-colors">
+                    Update Password
+                  </button>
+                </div>
+
+                {/* Danger Zone */}
+                <div className="bg-white rounded-2xl shadow-sm p-8 border border-red-100">
+                  <h3 className="text-base font-bold text-red-500 mb-1">Danger Zone</h3>
+                  <p className="text-sm text-gray-400 mb-4">
+                    Permanently delete your account and all associated data. This action cannot be undone.
+                  </p>
+                  <button className="border border-red-400 text-red-500 text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-red-50 transition-colors">
+                    Delete Account
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── BUSINESS TAB ── */}
+            {activeTab === "business" && (
+              <div className="bg-white rounded-2xl shadow-sm p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-primary-900">Business Information</h2>
+                  <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded">PREVIEW ONLY</span>
+                </div>
+                <div className="grid grid-cols-2 gap-5 mb-5">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Business Name</label>
+                    <input type="text" value={business.name} onChange={(e) => setBusiness({ ...business, name: e.target.value })}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Business Type</label>
+                    <div className="relative">
+                      <select value={business.type} onChange={(e) => setBusiness({ ...business, type: e.target.value })}
+                        className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors bg-white pr-8">
+                        {["Restaurant", "Catering", "Supplier", "Distributor", "Other"].map((t) => <option key={t}>{t}</option>)}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Location / City</label>
+                    <input type="text" value={business.location} onChange={(e) => setBusiness({ ...business, location: e.target.value })}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Number of Staff</label>
+                    <input type="number" value={business.staff} onChange={(e) => setBusiness({ ...business, staff: e.target.value })}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors" />
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button className="bg-primary-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-700 transition-colors">
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── NOTIFICATIONS TAB ── */}
+            {activeTab === "notifications" && (
+              <div className="bg-white rounded-2xl shadow-sm p-8">
+                <h2 className="text-xl font-bold text-primary-900 mb-1">Notification Settings</h2>
+                <p className="text-gray-400 text-sm mb-8">Choose how and when you want to be notified about your inventory and forecasts.</p>
+
+                {[
+                  {
+                    section: "SYSTEM ALERTS",
+                    items: [
+                      { key: "criticalStock", label: "Critical Stock Alerts", desc: "Low stock predictions and urgent warnings" },
+                      { key: "newForecast", label: "New Forecast Ready", desc: "Weekly demand reports and trend analysis" },
+                    ],
+                  },
+                  {
+                    section: "INVENTORY UPDATES",
+                    items: [
+                      { key: "newItem", label: "New Item Added", desc: "" },
+                      { key: "manualEntry", label: "Manual Entry Confirmed", desc: "" },
+                    ],
+                  },
+                  {
+                    section: "DELIVERY CHANNELS",
+                    items: [
+                      { key: "email", label: "Email Notifications", desc: "" },
+                      { key: "inApp", label: "In-app Notifications", desc: "" },
+                      { key: "push", label: "Push Notifications (Browser)", desc: "" },
+                    ],
+                  },
+                ].map((group) => (
+                  <div key={group.section} className="mb-7">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">{group.section}</p>
+                    <div className="flex flex-col gap-2">
+                      {group.items.map((item) => (
+                        <div key={item.key} className="flex items-center justify-between bg-gray-50 rounded-xl px-5 py-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-800">{item.label}</p>
+                            {item.desc && <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>}
+                          </div>
+                          <Toggle
+                            value={notifs[item.key]}
+                            onChange={(val) => setNotifs({ ...notifs, [item.key]: val })}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                <div className="flex justify-end">
+                  <button className="bg-primary-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-700 transition-colors">
+                    Save Preferences
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── PREFERENCES TAB ── */}
+            {activeTab === "preferences" && (
+              <div className="bg-white rounded-2xl shadow-sm p-8">
+                <h2 className="text-xl font-bold text-primary-900 mb-6">App Preferences</h2>
+
+                <div className="grid grid-cols-2 gap-5 mb-5">
+                  {[
+                    { label: "Language", key: "language", options: ["English", "Indonesian"] },
+                    { label: "Currency", key: "currency", options: ["USD ($)", "IDR (Rp)", "EUR (€)"] },
+                    { label: "Date Format", key: "dateFormat", options: ["MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"] },
+                    { label: "Default View", key: "defaultView", options: ["Dashboard", "Input Data", "Predictions"] },
+                  ].map((f) => (
+                    <div key={f.key}>
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">{f.label}</label>
+                      <div className="relative">
+                        <select
+                          value={prefs[f.key]}
+                          onChange={(e) => setPrefs({ ...prefs, [f.key]: e.target.value })}
+                          className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors bg-white pr-8"
+                        >
+                          {f.options.map((o) => <option key={o}>{o}</option>)}
+                        </select>
+                        <ChevronDown size={14} className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Theme Toggle */}
+                <div className="mb-8">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Theme</label>
+                  <div className="flex bg-gray-100 rounded-xl p-1 w-fit">
+                    {["Light", "Dark", "System"].map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => setPrefs({ ...prefs, theme: t })}
+                        className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          prefs.theme === t ? "bg-white text-primary-800 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <button className="bg-primary-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-700 transition-colors">
+                    Save Preferences
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </AppLayout>
+  );
+}
