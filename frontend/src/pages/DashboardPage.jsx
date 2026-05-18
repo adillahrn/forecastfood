@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BarChart,
@@ -25,6 +25,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import AppLayout from "../components/layout/AppLayout";
+import api from "../services/api";
 
 // ── Dummy Data ──
 const demandData = [
@@ -67,6 +68,12 @@ const statusLabel = {
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [dateRange] = useState("Oct 24, 2023 - Oct 31, 2023");
+
+  useEffect(() => {
+  api.get("/health")
+    .then((res) => console.log("✅ Backend connected:", res.data))
+    .catch((err) => console.error("❌ Backend error:", err));
+  }, []);
 
   return (
     <AppLayout>

@@ -8,6 +8,8 @@ import StockRecommendationPage from './pages/StockRecommendationPage'
 import AboutPage from './pages/AboutPage'
 import HistoryPage from './pages/HistoryPage'
 import AccountSettingsPage from './pages/AccountSettingsPage'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
       <Route path="/about" element={<AboutPage />} />
       <Route path="/history" element={<HistoryPage />} />
       <Route path="/settings" element={<AccountSettingsPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
     </Routes>
   )
 }
