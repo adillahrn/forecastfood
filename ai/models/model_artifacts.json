@@ -1,44 +1,13 @@
 {
   "feature_cols": [
     "Type of Food",
-    "Number of Guests",
     "Event Type",
     "Storage Conditions",
     "Seasonality",
     "Preparation Method",
-    "Wastage Food Amount"
-  ],
-  "cat_cols": [
-    "Type of Food",
-    "Event Type",
-    "Storage Conditions",
-    "Seasonality",
-    "Preparation Method"
-  ],
-  "num_cols": [
     "Number of Guests",
     "Wastage Food Amount"
   ],
-  "scaler_X_mean": [
-    1.7946127946127945,
-    317.8047138047138,
-    1.5437710437710437,
-    0.6492704826038159,
-    1.005050505050505,
-    1.2704826038159371,
-    28.536475869809202
-  ],
-  "scaler_X_scale": [
-    1.354385213201834,
-    67.81062310794188,
-    1.0736319979375761,
-    0.4771984105413847,
-    0.8391897064015219,
-    0.7299998404750214,
-    10.458381231018663
-  ],
-  "scaler_y_mean": 411.1257014590348,
-  "scaler_y_scale": 65.18637634063315,
   "label_encoders": {
     "Type of Food": [
       "Baked Goods",
