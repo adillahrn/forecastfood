@@ -29,6 +29,5 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.keras
 *.h5
 venv/
