@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff, Mail } from "lucide-react";
+import { supabase } from "../services/supabase";
 import logo from "../assets/logo.png";
 
 export default function LoginPage() {
@@ -9,9 +10,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    navigate("/dashboard");
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+      navigate("/dashboard");
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   return (
