@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff, TrendingUp } from "lucide-react";
+import { supabase } from "../services/supabase";
 import logo from "../assets/logo.png";
 
 function PasswordStrength({ password }) {
@@ -28,11 +29,24 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (!agreed) return alert("Please agree to the Terms of Service.");
     if (form.password !== form.confirm) return alert("Passwords do not match.");
-    navigate("/dashboard");
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: { full_name: form.name }
+        }
+      });
+      if (error) throw error;
+      alert("Registration successful! Please check your email to verify your account.");
+      navigate("/login");
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   return (
