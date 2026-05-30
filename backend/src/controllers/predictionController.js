@@ -45,6 +45,7 @@ export const createPrediction = async (req, res) => {
         file_name: req.file?.originalname || "manual_entry",
         total_items: predictions.length,
         status: "completed",
+        user_id: req.user.id,
       })
       .select()
       .single();
@@ -54,7 +55,10 @@ export const createPrediction = async (req, res) => {
     // Save predictions to Supabase
     const { error: predError } = await supabase
       .from("predictions")
-      .insert(predictions.map((p) => ({ ...p, history_id: session.id })));
+      .insert(predictions.map((p) => ({ ...p, 
+      history_id: session.id,
+      user_id: req.user.id,
+      })));
 
     if (predError) throw predError;
 
@@ -77,9 +81,11 @@ export const createPrediction = async (req, res) => {
     });
 
     const { error: stockError } = await supabase
-      .from("stock_recommendations")
-      .insert(stocks);
-
+    .from("stock_recommendations")
+    .insert(stocks.map((s) => ({ 
+      ...s,
+      user_id: req.user.id,
+    })));
     if (stockError) throw stockError;
 
     return sendSuccess(res, 201, "Prediksi berhasil dibuat", {

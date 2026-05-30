@@ -13,7 +13,7 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const isLanding = location.pathname === "/";
+  const isLanding = location.pathname === "/" || location.pathname === "/about";
 
   return (
     <nav
@@ -39,12 +39,6 @@ export default function Navbar() {
               className="text-sm font-medium text-primary-800 border-b-2 border-primary-800 pb-0.5"
             >
               Home
-            </Link>
-            <Link
-              to="/dashboard"
-              className="text-sm font-medium text-gray-600 hover:text-primary-800 transition-colors"
-            >
-              Dashboard
             </Link>
             <Link
               to="/about"
