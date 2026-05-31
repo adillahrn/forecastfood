@@ -10,6 +10,7 @@ import {
   Settings,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
+import { useAuth } from "../../context/AuthContext";
 
 const navItems = [
   { to: "/dashboard", icon: <LayoutDashboard size={18} />, label: "Dashboard" },
@@ -22,6 +23,29 @@ const navItems = [
 
 export default function Sidebar() {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  // Ambil nama dari metadata Supabase, fallback ke email, lalu "User"
+  const displayName =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split("@")[0] ||
+    "User";
+
+  const displayEmail = user?.email || "";
+
+  // Inisial avatar dari huruf pertama nama
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+  const handleLogout = async () => {
+    await signOut();   // ← benar-benar hapus session Supabase
+    navigate("/");     // ← kembali ke halaman home
+  };
 
   return (
     <aside className="fixed top-0 left-0 h-screen w-56 bg-white border-r border-gray-100 flex flex-col z-40">
@@ -58,17 +82,17 @@ export default function Sidebar() {
 
       {/* User + Logout */}
       <div className="px-3 py-4 border-t border-gray-100">
-        {/* User info */}
+        {/* User info — tampilkan data real dari Supabase */}
         <div
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 cursor-pointer mb-1"
           onClick={() => navigate("/settings")}
         >
-          <div className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-800 text-xs font-bold">
-            U
+          <div className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-800 text-xs font-bold shrink-0">
+            {initials}
           </div>
-          <div className="leading-tight">
-            <p className="text-gray-800 text-sm font-medium">User</p>
-            <p className="text-gray-400 text-xs">Inventory Manager</p>
+          <div className="leading-tight min-w-0">
+            <p className="text-gray-800 text-sm font-medium truncate">{displayName}</p>
+            <p className="text-gray-400 text-xs truncate">{displayEmail}</p>
           </div>
         </div>
 
@@ -81,9 +105,10 @@ export default function Sidebar() {
           Settings
         </button>
 
-        {/* Logout */}
+        {/* Logout — memanggil signOut() Supabase secara nyata */}
         <button
-          onClick={() => navigate("/")}
+          id="logout-btn"
+          onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:bg-red-50 hover:text-red-600 transition-all"
         >
           <LogOut size={18} />
