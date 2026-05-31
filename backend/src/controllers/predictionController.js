@@ -26,8 +26,10 @@ export const createPrediction = async (req, res) => {
     }
     // Handle manual entry (JSON body)
     else if (req.body.items) {
-      items = JSON.parse(req.body.items);
-    } else if (req.body.type_of_food) {
+    items = typeof req.body.items === "string" 
+      ? JSON.parse(req.body.items) 
+      : req.body.items;
+  } else if (req.body.type_of_food) {
       // Single item
       items = [{
         type_of_food: req.body.type_of_food,
