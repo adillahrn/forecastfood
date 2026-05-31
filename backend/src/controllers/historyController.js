@@ -11,6 +11,7 @@ export const getAllHistory = async (req, res) => {
     const { data, error, count } = await supabase
       .from("prediction_history")
       .select("*", { count: "exact" })
+      .eq("user_id", req.user.id)  // ← tambah ini
       .order("created_at", { ascending: false })
       .range(from, to);
 

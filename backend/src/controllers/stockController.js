@@ -5,14 +5,15 @@ import { sendSuccess, sendError } from "../utils/responseHelper.js";
 export const getStocks = async (req, res) => {
   try {
     const { session_id, status } = req.query;
-
-    let query = supabase.from("stock_recommendations").select("*");
+    let query = supabase
+      .from("stock_recommendations")
+      .select("*")
+      .eq("user_id", req.user.id);  // ← tambah ini
 
     if (session_id) query = query.eq("history_id", session_id);
     if (status) query = query.eq("status", status);
 
     const { data, error } = await query.order("created_at", { ascending: false });
-
     if (error) throw error;
 
     return sendSuccess(res, 200, "Berhasil mengambil rekomendasi stok", data);
