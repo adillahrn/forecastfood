@@ -233,7 +233,8 @@ export default function HistoryPage() {
                       ))}
                     </div>
                     <button
-                      onClick={() => navigate("/predictions")}
+                    onClick={() => navigate(`/predictions/${h.id}`)}
+                  
                       className="mt-4 text-xs font-semibold text-primary-700 hover:underline flex items-center gap-1"
                     >
                       <Eye size={13} />

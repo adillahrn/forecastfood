@@ -20,6 +20,13 @@ function App() {
       <Route path="/input-data" element={<ProtectedRoute><InputDataPage /></ProtectedRoute>} />
       <Route path="*" element={<NotFoundPage />} />
       <Route path="/predictions" element={<ProtectedRoute><PredictionResultPage /></ProtectedRoute>} />
+      <Route
+      path="/predictions/:id"
+      element={
+        <ProtectedRoute>
+          <PredictionResultPage />
+        </ProtectedRoute>
+      }/>
       <Route path="/stock-recommendation" element={<ProtectedRoute><StockRecommendationPage /></ProtectedRoute>} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/app/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />

@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useEffect } from "react";
+import api from "../services/api";
 import {
   ShieldCheck,
   Download,
@@ -102,17 +105,60 @@ function downloadCSV(predictions, inputs) {
 export default function PredictionResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id } = useParams();
+
   const { predictionData, mode, input } = location.state || {};
+
   const [showAll, setShowAll] = useState(false);
+
+  const [historyPrediction, setHistoryPrediction] = useState(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchPrediction = async () => {
+      try {
+        setLoadingHistory(true);
+
+        const res = await api.get(`/predictions/${id}`);
+
+        console.log("History prediction:", res.data);
+
+        setHistoryPrediction(res.data.data);
+      } catch (err) {
+        console.error("Failed to fetch prediction:", err);
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+
+    fetchPrediction();
+  }, [id]);
 
   const isBatch = mode === "batch";
 
   // Normalise data
-  const predictions = isBatch
-    ? predictionData?.predictions ?? []
-    : predictionData
-    ? [{ predicted_quantity: predictionData.predicted_quantity, input_summary: input }]
-    : [];
+  const historyPredictions = historyPrediction?.predictions || [];
+  const currentInput =
+    historyPredictions.length > 0
+      ? historyPredictions[0]
+      : input;
+
+  const predictions =
+    historyPredictions.length > 0
+      ? historyPredictions
+      : isBatch
+      ? predictionData?.predictions ?? []
+      : predictionData?.predictions
+      ? [
+          {
+            predicted_quantity:
+              predictionData.predictions[0]?.predicted_quantity,
+            input_summary: input,
+          },
+        ]
+      : [];
 
   const totalPortions = predictions.reduce(
     (acc, p) => acc + (p.predicted_quantity ?? 0),
@@ -121,8 +167,18 @@ export default function PredictionResultPage() {
 
   const displayed = showAll ? predictions : predictions.slice(0, 5);
 
+  console.log("predictionData =", predictionData);
+  console.log("predictions =", predictions);
+  console.log("input =", input);
+
   // No data state
-  if (!predictionData) {
+  if (!predictionData && !historyPrediction) {
+
+    console.log("predictionData", predictionData);
+    console.log(
+      "predicted",
+      predictionData?.predictions?.[0]?.predicted_quantity
+    );
     return (
       <AppLayout>
         <div className="p-8 flex flex-col items-center justify-center min-h-[60vh]">
@@ -204,16 +260,16 @@ export default function PredictionResultPage() {
                 <span className="text-primary-200">
                   {Math.round(predictions[0]?.predicted_quantity ?? 0)} porsi
                 </span>{" "}
-                {FOOD_TYPE_LABELS[input?.type_of_food] ?? input?.type_of_food}
+                {FOOD_TYPE_LABELS[currentInput?.type_of_food] ?? currentInput?.type_of_food}
               </p>
               <p className="text-primary-200 text-sm leading-relaxed">
                 Untuk acara{" "}
                 <strong className="text-white">
-                  {EVENT_TYPE_LABELS[input?.event_type] ?? input?.event_type}
+                  {EVENT_TYPE_LABELS[currentInput?.event_type] ?? currentInput?.event_type}
                 </strong>{" "}
-                dengan {input?.number_of_guests} tamu menggunakan metode{" "}
+                dengan {currentInput?.number_of_guests} tamu menggunakan metode{" "}
                 <strong className="text-white">
-                  {METHOD_LABELS[input?.preparation_method] ?? input?.preparation_method}
+                  {METHOD_LABELS[currentInput?.preparation_method] ?? currentInput?.preparation_method}
                 </strong>
                 .
               </p>
@@ -244,7 +300,12 @@ export default function PredictionResultPage() {
           {/* ── Prediction Cards ── */}
           <div className="col-span-2 flex flex-col gap-4">
             {displayed.map((pred, i) => {
-              const ev = isBatch ? input?.[i] : input;
+              const ev =
+                historyPredictions.length > 0
+                  ? pred
+                  : isBatch
+                  ? input?.[i]
+                  : input;
               const qty = Math.round(pred.predicted_quantity ?? 0);
               return (
                 <div
@@ -345,37 +406,37 @@ export default function PredictionResultPage() {
                 <DetailRow
                   icon={<ChefHat size={14} />}
                   label="Jenis Makanan"
-                  value={input?.type_of_food}
+                  value={currentInput?.type_of_food}
                 />
                 <DetailRow
                   icon={<Users size={14} />}
                   label="Jumlah Tamu"
-                  value={`${input?.number_of_guests} orang`}
+                  value={`${currentInput?.number_of_guests} orang`}
                 />
                 <DetailRow
                   icon={<CalendarDays size={14} />}
                   label="Tipe Acara"
-                  value={input?.event_type}
+                  value={currentInput?.event_type}
                 />
                 <DetailRow
                   icon={<Thermometer size={14} />}
                   label="Penyimpanan"
-                  value={input?.storage_conditions}
+                  value={currentInput?.storage_conditions}
                 />
                 <DetailRow
                   icon={<Sun size={14} />}
                   label="Musim"
-                  value={input?.seasonality}
+                  value={currentInput?.seasonality}
                 />
                 <DetailRow
                   icon={<UtensilsCrossed size={14} />}
                   label="Metode Sajian"
-                  value={input?.preparation_method}
+                  value={currentInput?.preparation_method}
                 />
                 <DetailRow
                   icon={<Trash2 size={14} />}
                   label="Est. Sisa"
-                  value={`${input?.wastage_food_amount} porsi`}
+                  value={`${currentInput?.wastage_food_amount} porsi`}
                 />
               </div>
 

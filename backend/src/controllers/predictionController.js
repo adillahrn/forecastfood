@@ -49,7 +49,12 @@ export const createPrediction = async (req, res) => {
     try {
       if (items.length === 1) {
         // Single prediction
+        console.log("AI URL:", `${AI_SERVICE_URL}/predict`);
+        console.log("Payload:", items[0]);
+
         const aiRes = await axios.post(`${AI_SERVICE_URL}/predict`, items[0]);
+
+        console.log("AI Response:", aiRes.data);
         predictions = [{
           ...aiRes.data.data.input_summary,
           predicted_quantity: aiRes.data.data.predicted_quantity,
@@ -63,8 +68,19 @@ export const createPrediction = async (req, res) => {
         }));
       }
     } catch (aiError) {
-      console.error("AI Service error:", aiError.message);
-      return sendError(res, 503, "AI service is currently unavailable. Please try again later.");
+      console.error("AI Service error:");
+      console.error("message =", aiError.message);
+
+      if (aiError.response) {
+        console.error("status =", aiError.response.status);
+        console.error("data =", aiError.response.data);
+      }
+
+      return sendError(
+        res,
+        503,
+        "AI service is currently unavailable. Please try again later."
+      );
     }
 
     // Save session to Supabase
