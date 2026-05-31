@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
 
 export default function Navbar() {
@@ -9,11 +9,16 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
+
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
-  const isLanding = location.pathname === "/" || location.pathname === "/about";
+  const isLanding =
+    location.pathname === "/" || location.pathname === "/about";
 
   return (
     <nav
@@ -24,28 +29,51 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="ForecastFood Logo" className="w-8 h-8 rounded-lg" />
+          <img
+            src={logo}
+            alt="ForecastFood Logo"
+            className="w-8 h-8 rounded-lg"
+          />
           <div className="leading-tight">
-            <p className="text-primary-800 font-bold text-sm">ForecastFood</p>
-            <p className="text-primary-600 text-xs">ECO-LOGISTICS AI</p>
+            <p className="text-primary-800 font-bold text-sm">
+              ForecastFood
+            </p>
+            <p className="text-primary-600 text-xs">
+              ECO-LOGISTICS AI
+            </p>
           </div>
         </Link>
 
-        {/* Nav Links + CTA — semua align right */}
+        {/* Navigation */}
         {isLanding && (
           <div className="flex items-center gap-8">
-            <Link
+            <NavLink
               to="/"
-              className="text-sm font-medium text-primary-800 border-b-2 border-primary-800 pb-0.5"
+              end
+              className={({ isActive }) =>
+                `text-sm font-medium pb-0.5 transition-colors ${
+                  isActive
+                    ? "text-primary-800 border-b-2 border-primary-800"
+                    : "text-gray-600 hover:text-primary-800"
+                }`
+              }
             >
               Home
-            </Link>
-            <Link
+            </NavLink>
+
+            <NavLink
               to="/about"
-              className="text-sm font-medium text-gray-600 hover:text-primary-800 transition-colors"
+              className={({ isActive }) =>
+                `text-sm font-medium pb-0.5 transition-colors ${
+                  isActive
+                    ? "text-primary-800 border-b-2 border-primary-800"
+                    : "text-gray-600 hover:text-primary-800"
+                }`
+              }
             >
               About
-            </Link>
+            </NavLink>
+
             <button
               onClick={() => navigate("/login")}
               className="bg-primary-800 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-primary-700 transition-colors"
