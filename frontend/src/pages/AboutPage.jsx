@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
   Bell,
   Settings,
@@ -53,12 +53,22 @@ const cycle = [
 
 export default function AboutPage() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { user, loading } = useAuth();
+  const isLoggedIn = !loading && !!user;
+
+  // Tunggu sampai auth state selesai dicek supaya layout tidak salah
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f5f5f0] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-primary-300 border-t-primary-800 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const content = (
     <div className="p-8">
       {/* ── Top Bar — hanya tampil kalau sudah login ── */}
-      {location.pathname.startsWith("/app/") && (
+      {isLoggedIn && (
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-primary-900">About This System</h1>
@@ -86,7 +96,7 @@ export default function AboutPage() {
       )}
 
       {/* ── Kalau belum login, tambah padding top buat navbar ── */}
-      {!location.pathname.startsWith("/app/") && <div className="pt-16" />}
+      {!isLoggedIn && <div className="pt-16" />}
 
       {/* ── Mission Section ── */}
       <div className="bg-white rounded-2xl p-8 shadow-sm mb-6 grid grid-cols-2 gap-12 items-center">
@@ -107,10 +117,11 @@ export default function AboutPage() {
           </p>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate(location.pathname.startsWith("/app/") ? "/dashboard" : "/login")}
+              id="about-cta-btn"
+              onClick={() => navigate(isLoggedIn ? "/dashboard" : "/login")}
               className="flex items-center gap-2 bg-primary-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-700 transition-colors"
             >
-              {location.pathname.startsWith("/app/") ? "View Dashboard" : "Get Started"}
+              {isLoggedIn ? "View Dashboard" : "Get Started"}
               <ArrowRight size={16} />
             </button>
             <button className="flex items-center gap-2 border border-gray-200 text-gray-600 text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
@@ -206,8 +217,7 @@ export default function AboutPage() {
   );
 
   // Kalau sudah login → pakai AppLayout (ada sidebar)
-  const isAppRoute = location.pathname.startsWith("/app/");
-  if (isAppRoute) {
+  if (isLoggedIn) {
     return <AppLayout>{content}</AppLayout>;
   }
   return <LandingLayout>{content}</LandingLayout>;

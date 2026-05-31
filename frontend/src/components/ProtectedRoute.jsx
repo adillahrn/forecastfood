@@ -16,9 +16,9 @@ export default function ProtectedRoute({ children }) {
     );
   }
 
-  // Kalau belum login, redirect ke login
+  // Kalau belum login, redirect ke home
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;

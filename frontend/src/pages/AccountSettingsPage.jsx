@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
   User,
   Lock,
@@ -58,19 +59,34 @@ function PasswordStrength({ password }) {
 
 export default function AccountSettingsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const fileRef = useRef();
   const [activeTab, setActiveTab] = useState("profile");
   const [photoPreview, setPhotoPreview] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
 
-  // Profile state
+  // Ambil data real dari Supabase session
+  const displayName =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split("@")[0] ||
+    "User";
+
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+  // Profile state — pre-filled dari data Supabase
   const [profile, setProfile] = useState({
-    name: "Elena Rodriguez",
-    email: "elena.r@forecastfood.ai",
-    phone: "+1 (555) 000-0000",
-    role: "Operations Lead",
-    bio: "",
+    name: displayName,
+    email: user?.email || "",
+    phone: user?.user_metadata?.phone || "",
+    role: user?.user_metadata?.role || "",
+    bio: user?.user_metadata?.bio || "",
   });
 
   // Business state
@@ -119,7 +135,9 @@ export default function AccountSettingsPage() {
             <button className="w-9 h-9 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:text-primary-800 transition-colors">
               <Bell size={16} />
             </button>
-            <div className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-800 text-xs font-bold">U</div>
+            <div className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-800 text-xs font-bold">
+              {initials}
+            </div>
           </div>
         </div>
 
@@ -160,7 +178,7 @@ export default function AccountSettingsPage() {
                       {photoPreview ? (
                         <img src={photoPreview} alt="avatar" className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-primary-800 text-2xl font-bold">ER</span>
+                        <span className="text-primary-800 text-2xl font-bold">{initials}</span>
                       )}
                     </div>
                     <button
