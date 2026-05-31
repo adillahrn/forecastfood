@@ -7,14 +7,9 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
-  CartesianGrid,
-  Legend,
 } from "recharts";
 import {
   TrendingUp,
-  Package,
   Leaf,
   RefreshCw,
   Bell,
@@ -23,56 +18,92 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  CalendarDays,
+  ChefHat,
+  Users,
 } from "lucide-react";
 import AppLayout from "../components/layout/AppLayout";
 import api from "../services/api";
 
-// ── Dummy Data ──
-const demandData = [
-  { day: "Mon", forecast: 320, actual: 280 },
-  { day: "Tue", forecast: 380, actual: 350 },
-  { day: "Wed", forecast: 290, actual: 310 },
-  { day: "Thu", forecast: 450, actual: 420 },
-  { day: "Fri", forecast: 400, actual: 390 },
-  { day: "Sat", forecast: 500, actual: 480 },
-  { day: "Sun", forecast: 340, actual: 300 },
+// ── Ilustrasi distribusi porsi per kategori makanan (dari scaler_y_mean model)
+const foodCategoryData = [
+  { category: "Meat", avg_portions: 420 },
+  { category: "Vegetables", avg_portions: 390 },
+  { category: "Baked Goods", avg_portions: 375 },
+  { category: "Dairy Products", avg_portions: 355 },
+  { category: "Fruits", avg_portions: 340 },
 ];
 
-const topItems = [
-  { name: "Organic Avocados", value: 840, max: 840 },
-  { name: "Whole Milk (1L)", value: 720, max: 840 },
-  { name: "Sourdough Loaf", value: 645, max: 840 },
-  { name: "Cherry Tomatoes", value: 590, max: 840 },
-  { name: "Greek Yogurt", value: 412, max: 840 },
-];
-
-const inventoryData = [
-  { name: "Organic Avocados", predicted: "840 units", stock: "210 units", status: "low", action: "Restock Now" },
-  { name: "Whole Milk (1L)", predicted: "720 units", stock: "750 units", status: "safe", action: "Details" },
-  { name: "Sourdough Loaf", predicted: "645 units", stock: "890 units", status: "overstock", action: "Adjust Order" },
-  { name: "Cherry Tomatoes", predicted: "590 units", stock: "580 units", status: "safe", action: "Details" },
+// ── Contoh riwayat prediksi terbaru (akan digantikan data real dari Supabase)
+const recentPredictions = [
+  {
+    event: "Corporate Event",
+    food: "Meat",
+    guests: 310,
+    portions: 412,
+    method: "Buffet",
+    status: "completed",
+  },
+  {
+    event: "Wedding",
+    food: "Vegetables",
+    guests: 250,
+    portions: 378,
+    method: "Sit-down Dinner",
+    status: "completed",
+  },
+  {
+    event: "Birthday",
+    food: "Baked Goods",
+    guests: 80,
+    portions: 105,
+    method: "Finger Food",
+    status: "completed",
+  },
+  {
+    event: "Social Gathering",
+    food: "Fruits",
+    guests: 150,
+    portions: 192,
+    method: "Buffet",
+    status: "completed",
+  },
 ];
 
 const statusStyle = {
-  low: "bg-red-100 text-red-600",
-  safe: "bg-green-100 text-primary-700",
-  overstock: "bg-yellow-100 text-yellow-700",
+  completed: "bg-green-100 text-green-700",
+  processing: "bg-blue-100 text-blue-700",
+  failed: "bg-red-100 text-red-600",
 };
 
-const statusLabel = {
-  low: "Low Stock",
-  safe: "Safe",
-  overstock: "Overstock",
+const CustomBar = (props) => {
+  const { x, y, width, height, index } = props;
+  const colors = ["#1B4332", "#2d6a4f", "#40916c", "#52b788", "#95d5b2"];
+  return (
+    <rect
+      x={x} y={y} width={width} height={height}
+      rx={4} ry={4}
+      fill={colors[index % colors.length]}
+    />
+  );
 };
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const [dateRange] = useState("Oct 24, 2023 - Oct 31, 2023");
+  const [dateRange] = useState(new Date().toLocaleDateString("id-ID", {
+    day: "numeric", month: "long", year: "numeric",
+  }));
+  const [stats, setStats] = useState({
+    totalPredictions: 0,
+    eventsTracked: 0,
+    avgWasteReduction: "18.5%",
+    lastUpdated: "Baru saja",
+  });
 
   useEffect(() => {
-  api.get("/health")
-    .then((res) => console.log("✅ Backend connected:", res.data))
-    .catch((err) => console.error("❌ Backend error:", err));
+    api.get("/health")
+      .then((res) => console.log("✅ Backend connected:", res.data))
+      .catch((err) => console.error("❌ Backend error:", err));
   }, []);
 
   return (
@@ -83,6 +114,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-primary-900">Dashboard</h1>
             <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-500">
+              <CalendarDays size={14} />
               <span>{dateRange}</span>
               <ChevronLeft size={14} />
               <ChevronRight size={14} />
@@ -97,11 +129,7 @@ export default function DashboardPage() {
             </button>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-800 text-xs font-bold">
-                E
-              </div>
-              <div className="leading-tight">
-                <p className="text-gray-800 text-sm font-medium">Elena Rodriguez</p>
-                <p className="text-gray-400 text-xs">Operations Lead</p>
+                U
               </div>
             </div>
           </div>
@@ -110,10 +138,34 @@ export default function DashboardPage() {
         {/* ── Stats Cards ── */}
         <div className="grid grid-cols-4 gap-5 mb-8">
           {[
-            { icon: <TrendingUp size={18} />, label: "Total Predictions", value: "12,482", badge: "+12%", badgeColor: "bg-green-100 text-green-700" },
-            { icon: <Package size={18} />, label: "Items Tracked", value: "1,240", badge: "Active", badgeColor: "bg-blue-100 text-blue-700" },
-            { icon: <Leaf size={18} />, label: "Est. Waste Reduced %", value: "18.5%", badge: "+24%", badgeColor: "bg-green-100 text-green-700" },
-            { icon: <RefreshCw size={18} />, label: "Last Updated", value: "14m ago", badge: "Live", badgeColor: "bg-red-100 text-red-600" },
+            {
+              icon: <TrendingUp size={18} />,
+              label: "Total Prediksi",
+              value: "12,482",
+              badge: "+12%",
+              badgeColor: "bg-green-100 text-green-700",
+            },
+            {
+              icon: <CalendarDays size={18} />,
+              label: "Acara Tercatat",
+              value: "1,240",
+              badge: "Aktif",
+              badgeColor: "bg-blue-100 text-blue-700",
+            },
+            {
+              icon: <Leaf size={18} />,
+              label: "Est. Waste Berkurang",
+              value: "18.5%",
+              badge: "+24%",
+              badgeColor: "bg-green-100 text-green-700",
+            },
+            {
+              icon: <RefreshCw size={18} />,
+              label: "Terakhir Diperbarui",
+              value: "14m lalu",
+              badge: "Live",
+              badgeColor: "bg-red-100 text-red-600",
+            },
           ].map((s, i) => (
             <div key={i} className="bg-white rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between mb-3">
@@ -132,52 +184,60 @@ export default function DashboardPage() {
 
         {/* ── Charts Row ── */}
         <div className="grid grid-cols-2 gap-5 mb-8">
-          {/* Demand Forecast Chart */}
+          {/* Rata-rata Porsi per Kategori Makanan */}
           <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-sm font-bold text-primary-900">Demand Forecast vs Actual</h2>
-              <div className="flex items-center gap-4 text-xs text-gray-400">
-                <span className="flex items-center gap-1">
-                  <span className="w-3 h-0.5 bg-primary-800 inline-block rounded" /> Forecast
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-3 h-0.5 bg-gray-300 inline-block rounded" /> Actual
-                </span>
-              </div>
+            <div className="mb-5">
+              <h2 className="text-sm font-bold text-primary-900">
+                Rata-rata Porsi per Kategori Makanan
+              </h2>
+              <p className="text-xs text-gray-400 mt-1">
+                Berdasarkan hasil training model AI (scaler mean ≈ 411 porsi)
+              </p>
             </div>
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={demandData} barGap={4}>
-                <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
+              <BarChart data={foodCategoryData} barGap={4}>
+                <XAxis
+                  dataKey="category"
+                  tick={{ fontSize: 10, fill: "#9ca3af" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
                 <YAxis hide />
                 <Tooltip
                   contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-                  labelStyle={{ fontWeight: 600, color: "#1B4332" }}
+                  formatter={(value) => [`${value} porsi`, "Rata-rata"]}
                 />
-                <Bar dataKey="forecast" fill="#1B4332" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="actual" fill="#d1fae5" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="avg_portions" radius={[4, 4, 0, 0]} shape={<CustomBar />} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Top Items */}
+          {/* Top Event Types */}
           <div className="bg-white rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-sm font-bold text-primary-900">Top Items by Demand</h2>
+              <h2 className="text-sm font-bold text-primary-900">
+                Distribusi Tipe Acara
+              </h2>
               <button className="text-gray-400 hover:text-primary-800">
                 <Settings size={14} />
               </button>
             </div>
             <div className="flex flex-col gap-4">
-              {topItems.map((item, i) => (
+              {[
+                { name: "Wedding", value: 38, color: "bg-primary-800" },
+                { name: "Corporate", value: 28, color: "bg-primary-600" },
+                { name: "Social Gathering", value: 22, color: "bg-primary-400" },
+                { name: "Birthday", value: 12, color: "bg-primary-200" },
+              ].map((item, i) => (
                 <div key={i}>
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-sm text-gray-700">{item.name}</p>
-                    <p className="text-sm font-semibold text-primary-800">{item.value} units</p>
+                    <p className="text-sm font-semibold text-primary-800">{item.value}%</p>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-1.5">
                     <div
-                      className="bg-primary-800 h-1.5 rounded-full"
-                      style={{ width: `${(item.value / item.max) * 100}%` }}
+                      className={`${item.color} h-1.5 rounded-full transition-all`}
+                      style={{ width: `${item.value}%` }}
                     />
                   </div>
                 </div>
@@ -186,15 +246,15 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Inventory Table ── */}
+        {/* ── Recent Predictions Table ── */}
         <div className="bg-white rounded-2xl shadow-sm">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-bold text-primary-900">Inventory Status Predictions</h2>
+            <h2 className="text-sm font-bold text-primary-900">Riwayat Prediksi Terbaru</h2>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
                 <input
                   type="text"
-                  placeholder="Search items..."
+                  placeholder="Cari acara..."
                   className="text-sm text-gray-500 bg-transparent outline-none w-32"
                 />
               </div>
@@ -206,52 +266,50 @@ export default function DashboardPage() {
           </div>
 
           {/* Table Header */}
-          <div className="grid grid-cols-5 px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-50">
-            <span className="col-span-2">Item Name</span>
-            <span>Predicted Demand</span>
-            <span>Current Stock</span>
-            <span>Status / Action</span>
+          <div className="grid grid-cols-6 px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-50">
+            <span className="col-span-2">Tipe Acara</span>
+            <span>Jenis Makanan</span>
+            <span>Jumlah Tamu</span>
+            <span>Porsi Diprediksi</span>
+            <span>Status</span>
           </div>
 
           {/* Table Rows */}
-          {inventoryData.map((item, i) => (
+          {recentPredictions.map((item, i) => (
             <div
               key={i}
-              className="grid grid-cols-5 px-6 py-4 items-center border-b border-gray-50 hover:bg-gray-50 transition-colors"
+              className="grid grid-cols-6 px-6 py-4 items-center border-b border-gray-50 hover:bg-gray-50 transition-colors"
             >
               <div className="col-span-2 flex items-center gap-3">
                 <div className="w-9 h-9 bg-primary-50 rounded-xl flex items-center justify-center">
-                  <Package size={16} className="text-primary-700" />
+                  <CalendarDays size={16} className="text-primary-700" />
                 </div>
-                <p className="text-sm font-medium text-gray-800">{item.name}</p>
+                <p className="text-sm font-medium text-gray-800">{item.event}</p>
               </div>
-              <p className="text-sm text-gray-600">{item.predicted}</p>
-              <p className="text-sm text-gray-600">{item.stock}</p>
-              <div className="flex items-center gap-3">
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusStyle[item.status]}`}>
-                  {statusLabel[item.status]}
-                </span>
-                <button
-                  onClick={() => navigate("/stock-recommendation")}
-                  className="text-xs text-primary-700 font-medium hover:underline"
-                >
-                  {item.action}
-                </button>
+              <div className="flex items-center gap-1 text-sm text-gray-600">
+                <ChefHat size={13} className="text-gray-400" />
+                {item.food}
               </div>
+              <div className="flex items-center gap-1 text-sm text-gray-600">
+                <Users size={13} className="text-gray-400" />
+                {item.guests}
+              </div>
+              <p className="text-sm font-bold text-primary-800">{item.portions} porsi</p>
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full w-fit ${statusStyle[item.status]}`}>
+                Selesai
+              </span>
             </div>
           ))}
 
           {/* Table Footer */}
           <div className="flex items-center justify-between px-6 py-4">
-            <p className="text-xs text-gray-400">Showing 4 of 1,240 items</p>
+            <p className="text-xs text-gray-400">Menampilkan 4 dari 1.240 prediksi</p>
             <div className="flex items-center gap-1">
               {[1, 2, 3].map((n) => (
                 <button
                   key={n}
                   className={`w-7 h-7 rounded-lg text-xs font-medium ${
-                    n === 1
-                      ? "bg-primary-800 text-white"
-                      : "text-gray-400 hover:bg-gray-100"
+                    n === 1 ? "bg-primary-800 text-white" : "text-gray-400 hover:bg-gray-100"
                   }`}
                 >
                   {n}
@@ -261,17 +319,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Storage Limit */}
-        <div className="mt-5 bg-white rounded-2xl p-5 shadow-sm w-56">
-          <p className="text-xs font-semibold text-gray-700 mb-2">Storage Limit</p>
-          <div className="w-full bg-gray-100 rounded-full h-1.5 mb-1">
-            <div className="bg-primary-700 h-1.5 rounded-full" style={{ width: "72%" }} />
-          </div>
-          <p className="text-xs text-gray-400">72% Capacity Reached</p>
-        </div>
-
         {/* FAB */}
         <button
+          id="fab-new-prediction"
           onClick={() => navigate("/input-data")}
           className="fixed bottom-8 right-8 w-12 h-12 bg-primary-800 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary-700 transition-colors"
         >
