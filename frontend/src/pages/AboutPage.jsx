@@ -124,10 +124,23 @@ export default function AboutPage() {
               {isLoggedIn ? "View Dashboard" : "Get Started"}
               <ArrowRight size={16} />
             </button>
-            <button className="flex items-center gap-2 border border-gray-200 text-gray-600 text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
-              <FileText size={16} />
+            <a
+              href="https://github.com/nailahhermawan/forecastfood"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="
+                px-4 py-2
+                bg-white
+                text-primary-800
+                border border-primary-800
+                rounded-xl
+                transition-all duration-200
+                hover:bg-primary-800
+                hover:text-white
+              "
+            >
               Documentation
-            </button>
+            </a>
           </div>
         </div>
 

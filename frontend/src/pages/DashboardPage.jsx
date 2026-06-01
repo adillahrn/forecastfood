@@ -35,40 +35,6 @@ const foodCategoryData = [
 ];
 
 // ── Contoh riwayat prediksi terbaru (akan digantikan data real dari Supabase)
-const recentPredictions = [
-  {
-    event: "Corporate Event",
-    food: "Meat",
-    guests: 310,
-    portions: 412,
-    method: "Buffet",
-    status: "completed",
-  },
-  {
-    event: "Wedding",
-    food: "Vegetables",
-    guests: 250,
-    portions: 378,
-    method: "Sit-down Dinner",
-    status: "completed",
-  },
-  {
-    event: "Birthday",
-    food: "Baked Goods",
-    guests: 80,
-    portions: 105,
-    method: "Finger Food",
-    status: "completed",
-  },
-  {
-    event: "Social Gathering",
-    food: "Fruits",
-    guests: 150,
-    portions: 192,
-    method: "Buffet",
-    status: "completed",
-  },
-];
 
 const statusStyle = {
   completed: "bg-green-100 text-green-700",
@@ -100,10 +66,18 @@ export default function DashboardPage() {
     lastUpdated: "Baru saja",
   });
 
+  const [recentPredictions, setRecentPredictions] = useState([]);
+
   useEffect(() => {
     api.get("/health")
       .then((res) => console.log("✅ Backend connected:", res.data))
       .catch((err) => console.error("❌ Backend error:", err));
+
+    api.get("/predictions")
+    .then((res) => {
+      setRecentPredictions(res.data);
+    })
+    .catch((err) => console.error(err));
   }, []);
 
   return (
@@ -246,78 +220,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Recent Predictions Table ── */}
-        <div className="bg-white rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-bold text-primary-900">Riwayat Prediksi Terbaru</h2>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
-                <input
-                  type="text"
-                  placeholder="Cari acara..."
-                  className="text-sm text-gray-500 bg-transparent outline-none w-32"
-                />
-              </div>
-              <button className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-100">
-                <Filter size={14} />
-                Filter
-              </button>
-            </div>
-          </div>
-
-          {/* Table Header */}
-          <div className="grid grid-cols-6 px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-50">
-            <span className="col-span-2">Tipe Acara</span>
-            <span>Jenis Makanan</span>
-            <span>Jumlah Tamu</span>
-            <span>Porsi Diprediksi</span>
-            <span>Status</span>
-          </div>
-
-          {/* Table Rows */}
-          {recentPredictions.map((item, i) => (
-            <div
-              key={i}
-              className="grid grid-cols-6 px-6 py-4 items-center border-b border-gray-50 hover:bg-gray-50 transition-colors"
-            >
-              <div className="col-span-2 flex items-center gap-3">
-                <div className="w-9 h-9 bg-primary-50 rounded-xl flex items-center justify-center">
-                  <CalendarDays size={16} className="text-primary-700" />
-                </div>
-                <p className="text-sm font-medium text-gray-800">{item.event}</p>
-              </div>
-              <div className="flex items-center gap-1 text-sm text-gray-600">
-                <ChefHat size={13} className="text-gray-400" />
-                {item.food}
-              </div>
-              <div className="flex items-center gap-1 text-sm text-gray-600">
-                <Users size={13} className="text-gray-400" />
-                {item.guests}
-              </div>
-              <p className="text-sm font-bold text-primary-800">{item.portions} porsi</p>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full w-fit ${statusStyle[item.status]}`}>
-                Selesai
-              </span>
-            </div>
-          ))}
-
-          {/* Table Footer */}
-          <div className="flex items-center justify-between px-6 py-4">
-            <p className="text-xs text-gray-400">Menampilkan 4 dari 1.240 prediksi</p>
-            <div className="flex items-center gap-1">
-              {[1, 2, 3].map((n) => (
-                <button
-                  key={n}
-                  className={`w-7 h-7 rounded-lg text-xs font-medium ${
-                    n === 1 ? "bg-primary-800 text-white" : "text-gray-400 hover:bg-gray-100"
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
 
         {/* FAB */}
         <button
