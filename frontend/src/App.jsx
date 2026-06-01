@@ -4,7 +4,6 @@ import DashboardPage from './pages/DashboardPage'
 import InputDataPage from './pages/InputDataPage'
 import NotFoundPage from './pages/NotFoundPage'
 import PredictionResultPage from './pages/PredictionResultPage'
-import StockRecommendationPage from './pages/StockRecommendationPage'
 import AboutPage from './pages/AboutPage'
 import HistoryPage from './pages/HistoryPage'
 import AccountSettingsPage from './pages/AccountSettingsPage'
@@ -27,7 +26,6 @@ function App() {
           <PredictionResultPage />
         </ProtectedRoute>
       }/>
-      <Route path="/stock-recommendation" element={<ProtectedRoute><StockRecommendationPage /></ProtectedRoute>} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/app/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
       <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />

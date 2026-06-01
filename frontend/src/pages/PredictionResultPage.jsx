@@ -111,6 +111,10 @@ export default function PredictionResultPage() {
 
   const [showAll, setShowAll] = useState(false);
 
+  console.log("RAW predictionData:", predictionData);
+  const predictionsList = predictionData?.predictions ?? [];
+  const prediction = predictionsList[0];
+
   const [historyPrediction, setHistoryPrediction] = useState(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
@@ -125,7 +129,7 @@ export default function PredictionResultPage() {
 
         console.log("History prediction:", res.data);
 
-        setHistoryPrediction(res.data.data);
+        setHistoryPrediction(res.data.data?.predictions || []);
       } catch (err) {
         console.error("Failed to fetch prediction:", err);
       } finally {
@@ -137,29 +141,35 @@ export default function PredictionResultPage() {
   }, [id]);
 
   const isBatch = mode === "batch";
+    mode === "batch" ||
+    (predictionData?.predictions?.length > 1);
 
   // Normalise data
-  const historyPredictions = historyPrediction?.predictions || [];
+  const historyPredictions = historyPrediction || [];
   const currentInput =
-    historyPredictions.length > 0
-      ? historyPredictions[0]
+    isBatch
+      ? input?.[0] ?? input
       : input;
 
-  const predictions =
-    historyPredictions.length > 0
-      ? historyPredictions
-      : isBatch
-      ? predictionData?.predictions ?? []
-      : predictionData?.predictions
-      ? [
-          {
-            predicted_quantity:
-              predictionData.predictions[0]?.predicted_quantity,
-            input_summary: input,
-          },
-        ]
-      : [];
+  let predictions = [];
 
+  if (historyPredictions?.length > 0) {
+    predictions = historyPredictions;
+  } 
+  else if (isBatch) {
+    predictions = predictionData?.predictions ?? [];
+  } 
+  else if (predictionData?.predictions?.length > 0) {
+    predictions = [
+      {
+        ...input,
+        ...predictionData.predictions[0],
+      },
+    ];
+  } 
+  else {
+    predictions = [];
+  }
   const totalPortions = predictions.reduce(
     (acc, p) => acc + (p.predicted_quantity ?? 0),
     0
@@ -245,7 +255,7 @@ export default function PredictionResultPage() {
             <div className="w-24 h-24 rounded-2xl bg-primary-700 flex flex-col items-center justify-center shrink-0">
               <Sparkles size={28} className="text-primary-300 mb-1" />
               <span className="text-3xl font-black text-white">
-                {Math.round(predictions[0]?.predicted_quantity ?? 0)}
+                {Math.round(predictions?.[0]?.predicted_quantity ?? 0)}
               </span>
               <span className="text-primary-300 text-xs font-semibold mt-0.5">
                 Porsi
@@ -258,7 +268,7 @@ export default function PredictionResultPage() {
               <p className="text-xl font-bold text-white mb-1">
                 Siapkan{" "}
                 <span className="text-primary-200">
-                  {Math.round(predictions[0]?.predicted_quantity ?? 0)} porsi
+                  {Math.round(predictions?.[0]?.predicted_quantity ?? 0)} porsi
                 </span>{" "}
                 {FOOD_TYPE_LABELS[currentInput?.type_of_food] ?? currentInput?.type_of_food}
               </p>
@@ -267,7 +277,7 @@ export default function PredictionResultPage() {
                 <strong className="text-white">
                   {EVENT_TYPE_LABELS[currentInput?.event_type] ?? currentInput?.event_type}
                 </strong>{" "}
-                dengan {currentInput?.number_of_guests} tamu menggunakan metode{" "}
+                dengan {currentInput?.number_of_guests ?? "-"} tamu menggunakan metode{" "}
                 <strong className="text-white">
                   {METHOD_LABELS[currentInput?.preparation_method] ?? currentInput?.preparation_method}
                 </strong>
@@ -300,13 +310,9 @@ export default function PredictionResultPage() {
           {/* ── Prediction Cards ── */}
           <div className="col-span-2 flex flex-col gap-4">
             {displayed.map((pred, i) => {
-              const ev =
-                historyPredictions.length > 0
-                  ? pred
-                  : isBatch
-                  ? input?.[i]
-                  : input;
-              const qty = Math.round(pred.predicted_quantity ?? 0);
+              console.log("HISTORY PRED:", pred);
+              const ev = pred;
+              const qty = Math.round(Number(pred?.predicted_quantity ?? 0));
               return (
                 <div
                   key={i}
@@ -411,7 +417,7 @@ export default function PredictionResultPage() {
                 <DetailRow
                   icon={<Users size={14} />}
                   label="Jumlah Tamu"
-                  value={`${currentInput?.number_of_guests} orang`}
+                  value={`${currentInput?.number_of_guests ?? "-"} orang`}
                 />
                 <DetailRow
                   icon={<CalendarDays size={14} />}

@@ -16,7 +16,6 @@ const navItems = [
   { to: "/dashboard", icon: <LayoutDashboard size={18} />, label: "Dashboard" },
   { to: "/input-data", icon: <FileInput size={18} />, label: "Input Data" },
   { to: "/predictions", icon: <Radio size={18} />, label: "Predictions" },
-  { to: "/stock-recommendation", icon: <Package size={18} />, label: "Stock Recommendation" },
   { to: "/history", icon: <History size={18} />, label: "History" },
   { to: "/about", icon: <Info size={18} />, label: "About" },
 ];

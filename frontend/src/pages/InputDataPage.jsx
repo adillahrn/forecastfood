@@ -2,6 +2,7 @@ import { runPrediction } from "../services/predictionService";
 import { useState } from "react";
 import PredictionLoading from "../components/PredictionLoading";
 import { useNavigate } from "react-router-dom";
+import Papa from "papaparse";
 import {
   Sparkles,
   ShieldCheck,
@@ -103,8 +104,17 @@ export default function InputDataPage() {
   const [csvFileName, setCsvFileName] = useState("");
   const [dragging, setDragging] = useState(false);
 
+  const [csvData, setCsvData] = useState([]);
+  const [csvErrorRows, setCsvErrorRows] = useState([]);
+
   const [batchEntries, setBatchEntries] = useState([defaultEntry()]);
   const [error, setError] = useState(null);
+
+  const updateSingle = (field, value) =>
+    setSingleEntry((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
 
   const updateBatch = (id, field, value) =>
     setBatchEntries((prev) =>
@@ -126,64 +136,124 @@ export default function InputDataPage() {
       prev.filter((e) => e.id !== id)
     );
 
+    const cleanNumber = (value) => {
+      if (!value) return 0;
+
+      const match = String(value)
+        .replace(",", ".")
+        .match(/-?\d+(\.\d+)?/);
+
+      return match ? parseFloat(match[0]) : 0;
+    };
+
     const handleCSVUpload = (e) => {
-    const file = e.target.files[0];
+      const file = e.target.files[0];
+      if (!file) return;
 
-    if (!file) return;
+      setCsvFile(file);
+      setCsvFileName(file.name);
 
-    setCsvFileName(file.name);
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (result) => {
+          const parsed = result.data;
 
-    console.log("CSV Selected:", file);
-  };
+          const cleaned = parsed.map((row, index) => ({
+            id: index,
+            type_of_food: row.type_of_food?.trim() || "",
+            number_of_guests: cleanNumber(row.number_of_guests),
+            event_type: row.event_type?.trim() || "",
+            storage_conditions: row.storage_conditions?.trim() || "",
+            seasonality: row.seasonality?.trim() || "",
+            preparation_method: row.preparation_method?.trim() || "",
+            wastage_food_amount: cleanNumber(row.wastage_food_amount),
+          }));
+
+          setCsvData(cleaned);
+
+          // VALIDATION
+          const invalidRows = cleaned
+            .map((row, i) => {
+              const valid =
+                row.number_of_guests > 0 &&
+                row.number_of_guests <= 1000 &&
+                row.wastage_food_amount >= 0 &&
+                row.wastage_food_amount <= 100;
+
+              return valid ? null : i + 1;
+            })
+            .filter(Boolean);
+
+          setCsvErrorRows(invalidRows);
+        },
+      });
+    };
 
   const validateEntry = (entry) =>
-    entry.number_of_guests > 0 &&
-    entry.number_of_guests <= 1000 &&
-    entry.wastage_food_amount >= 0 &&
-    entry.wastage_food_amount <= 100;
+    Number(entry.number_of_guests) > 0 &&
+    Number(entry.number_of_guests) <= 1000 &&
+    Number(entry.wastage_food_amount) >= 0 &&
+    Number(entry.wastage_food_amount) <= 100;
 
   const handleRunPrediction = async () => {
     setError(null);
-    const payload =
-      mode === "single"
-        ? {
-            ...singleEntry,
-            number_of_guests: parseInt(singleEntry.number_of_guests),
-            wastage_food_amount: parseFloat(singleEntry.wastage_food_amount),
-          }
-        : batchEntries.map((e) => ({
-            ...e,
-            number_of_guests: parseInt(e.number_of_guests),
-            wastage_food_amount: parseFloat(e.wastage_food_amount),
-          }));
 
-    const toValidate = mode === "single" ? [payload] : payload;
-    if (toValidate.some((e) => !validateEntry(e))) {
-      setError(
-        "Pastikan Jumlah Tamu diisi (1–1000) dan Estimasi Sisa Makanan (0–100)."
-      );
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      const result = await runPrediction(
-        mode === "single" ? payload : { items: payload }
-      );
+      let payload;
+
+      // 🔥 FORCE manual & batch dipisah jelas
+      if (inputMode === "manual") { 
+        payload = {
+          type_of_food: singleEntry.type_of_food,
+          number_of_guests: Number(singleEntry.number_of_guests),
+          event_type: singleEntry.event_type,
+          storage_conditions: singleEntry.storage_conditions,
+          seasonality: singleEntry.seasonality,
+          preparation_method: singleEntry.preparation_method,
+          wastage_food_amount: Number(singleEntry.wastage_food_amount),
+        };
+      } else {
+        // CSV MODE
+        if (!csvData || csvData.length === 0) {
+          setError("CSV kosong atau belum terbaca");
+          return;
+        }
+
+        payload = {
+          items: csvData.map((row) => ({
+            type_of_food: row.type_of_food,
+            number_of_guests: Number(row.number_of_guests),
+            event_type: row.event_type,
+            storage_conditions: row.storage_conditions,
+            seasonality: row.seasonality,
+            preparation_method: row.preparation_method,
+            wastage_food_amount: Number(row.wastage_food_amount),
+          })),
+        };
+      }
+
+      console.log("PAYLOAD FIXED:", payload);
+
+      setIsLoading(true);
+
+      const result = await runPrediction(payload);
+
       navigate("/predictions", {
         state: {
           predictionData: result.data,
-          mode,
-          input: payload,
+          mode: inputMode,
+          input: inputMode === "csv" ? csvData : payload,
         },
       });
+
     } catch (err) {
-      console.error("Prediction error:", err);
-      setError("Gagal menghubungi server prediksi. Pastikan backend berjalan.");
+      console.error("ERROR RUN PREDICTION:", err);
+      setError("Gagal menghubungi server prediksi. Cek backend atau network.");
+    } finally {
       setIsLoading(false);
     }
   };
-
   if (isLoading)
     return (
       <PredictionLoading
@@ -310,13 +380,11 @@ export default function InputDataPage() {
               </div>
             )}
 
-            {/* ── Upload CSV ── */}
+            {/* ── CSV Upload Area ── */}
             {inputMode === "csv" && (
               <div className="bg-white rounded-2xl p-8 shadow-sm">
-                <p className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-5">
-                  Upload CSV Batch
-                </p>
 
+                {/* DROPZONE */}
                 <label
                   htmlFor="csv-upload"
                   onDragOver={(e) => {
@@ -331,32 +399,23 @@ export default function InputDataPage() {
                     const file = e.dataTransfer.files[0];
                     if (!file) return;
 
-                    setCsvFileName(file.name);
+                    handleCSVUpload({ target: { files: [file] } });
                   }}
-                  className={`
-                    border-2 border-dashed rounded-2xl h-80
-                    flex flex-col items-center justify-center
-                    cursor-pointer transition-all
-                    ${
-                      dragging
-                        ? "border-primary-600 bg-primary-50 scale-[1.01]"
-                        : "border-primary-200 hover:border-primary-500 hover:bg-primary-50"
-                    }
-                  `}
+                  className={`border-2 border-dashed rounded-2xl h-60 flex flex-col items-center justify-center cursor-pointer transition-all ${
+                    dragging
+                      ? "border-primary-600 bg-primary-50"
+                      : "border-primary-200 hover:border-primary-500 hover:bg-primary-50"
+                  }`}
                 >
-                  <Upload size={52} className="text-primary-500 mb-4" />
+                  <Upload size={40} className="text-primary-500 mb-3" />
 
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                    Drag & Drop CSV di sini
-                  </h3>
-
-                  <p className="text-sm text-gray-500 text-center max-w-md mb-5">
-                    Seret file CSV dari komputer atau klik untuk memilih file.
+                  <p className="text-sm font-semibold">
+                    Upload CSV / Drag & Drop
                   </p>
 
-                  <div className="bg-primary-800 text-white px-5 py-2 rounded-xl text-sm font-medium">
-                    Pilih File CSV
-                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    type_of_food, number_of_guests, event_type, dll
+                  </p>
 
                   <input
                     id="csv-upload"
@@ -367,11 +426,43 @@ export default function InputDataPage() {
                   />
                 </label>
 
+                {/* FILE NAME */}
                 {csvFileName && (
-                  <div className="mt-4 text-sm text-green-600 font-medium">
+                  <p className="text-green-600 text-sm mt-3">
                     File: {csvFileName}
-                  </div>
+                  </p>
                 )}
+              </div>
+            )}
+
+            {csvData.length > 0 && (
+              <div className="mt-6 bg-white rounded-xl border p-4 overflow-auto">
+
+                <p className="text-sm font-semibold mb-3">
+                  Preview ({csvData.length} rows)
+                </p>
+
+                <table className="w-full text-xs border">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="p-2">Food</th>
+                      <th>Guests</th>
+                      <th>Event</th>
+                      <th>Waste</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {csvData.slice(0, 10).map((row, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="p-2">{row.type_of_food}</td>
+                        <td>{row.number_of_guests}</td>
+                        <td>{row.event_type}</td>
+                        <td>{row.wastage_food_amount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
 

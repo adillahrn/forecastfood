@@ -257,7 +257,9 @@ def predict_batch(request: BatchPredictionRequest):
 
     try:
         model_inputs = [_request_to_model_input(item) for item in request.items]
-        predictions = model_service.predict_batch(model_inputs)
+        raw_predictions = model_service.predict_batch(model_inputs)
+
+        predictions = list(raw_predictions)  # paksa jadi list
 
         results = []
         for item, pred in zip(request.items, predictions):
