@@ -157,21 +157,7 @@ export default function HistoryPage() {
                 className="text-sm text-gray-600 outline-none bg-transparent flex-1"
               />
             </div>
-            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2">
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="text-sm text-gray-500 outline-none bg-transparent"
-              />
-              <span className="text-gray-300">—</span>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="text-sm text-gray-500 outline-none bg-transparent"
-              />
-            </div>
+            
             {["All", "Completed", "Failed"].map((s) => (
               <button
                 key={s}

@@ -13,8 +13,7 @@ export default function Footer() {
               <p className="text-primary-800 font-bold text-sm">ForecastFood</p>
             </div>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Empowering the food and beverage industry with intelligent data
-              insights to build a zero-waste future for global logistics.
+              Empowering event organizers and food providers with intelligent forecasting to reduce waste and optimize food planning.
             </p>
           </div>
 

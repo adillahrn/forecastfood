@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import aboutImage from "../assets/about-ff.jpg";
 import {
   Bell,
   Settings,
@@ -123,9 +124,9 @@ export default function AboutPage() {
         </div>
 
         {/* Right — decorative card */}
-        <div className="w-full h-64 bg-primary-100 rounded-2xl overflow-hidden">
+        <div className="w-full h-64 bg-primary-100 rounded-2xl overflow-hidden flex items-center justify-center">
           <img
-            src="src/assets/about-ff.png"
+            src={aboutImage}
             alt="ForecastFood Eco-Logistics AI"
             className="w-full h-full object-cover"
           />

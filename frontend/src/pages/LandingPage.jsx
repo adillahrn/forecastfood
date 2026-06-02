@@ -21,7 +21,7 @@ export default function LandingPage() {
           {/* Left */}
           <div>
             <p className="text-primary-700 text-sm font-semibold tracking-widest uppercase mb-4">
-              Eco-Logistics AI
+              AI-Powered Event Consumption Planning
             </p>
             <h1 className="text-5xl font-bold text-primary-900 leading-tight mb-6">
               Predict Smarter,
