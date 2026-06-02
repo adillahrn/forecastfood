@@ -15,13 +15,12 @@ import {
 } from "lucide-react";
 import AppLayout from "../components/layout/AppLayout";
 import { supabase } from "../services/supabase";
+import { useToast } from "../components/ui/Toast";
 
 // ── Tab Config ──
 const tabs = [
   { id: "profile", label: "Profile Information", icon: <User size={16} /> },
-  { id: "business", label: "Business Information", icon: <Building2 size={16} /> },
   { id: "security", label: "Security & Password", icon: <Lock size={16} /> },
-  { id: "preferences", label: "Preferences", icon: <Settings size={16} /> },
 ];
 
 // ── Toggle Component ──
@@ -60,6 +59,7 @@ function PasswordStrength({ password }) {
 export default function AccountSettingsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showToast, ToastComponent } = useToast();
   const fileRef = useRef();
 
   const [activeTab, setActiveTab] = useState("profile");
@@ -93,10 +93,21 @@ export default function AccountSettingsPage() {
 
   // Business state
   const [business, setBusiness] = useState({
-    name: "ForecastFood Global",
-    type: "Supplier",
-    location: "London, UK",
-    staff: "45",
+    name:
+      user?.user_metadata?.business_name ||
+      "",
+      
+    type:
+      user?.user_metadata?.business_type ||
+      "Supplier",
+
+    location:
+      user?.user_metadata?.business_location ||
+      "",
+
+    staff:
+      user?.user_metadata?.business_staff ||
+      "",
   });
 
   // Preferences state
@@ -133,7 +144,7 @@ export default function AccountSettingsPage() {
 
       if (uploadError) {
         console.log(uploadError);
-        alert(uploadError.message);
+        showToast(uploadError.message, "error");
         return;
       }
 
@@ -158,28 +169,57 @@ export default function AccountSettingsPage() {
       });
 
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
 
-    alert("Profile updated!");
+    showToast("Profile updated successfully! 🎉", "success");
+
+    setTimeout(() => {
+      window.location.reload();
+    }, 800);
   };
+
+  const handleSaveBusiness = async () => {
+      const { error } =
+        await supabase.auth.updateUser({
+          data: {
+            business_name: business.name,
+            business_type: business.type,
+            business_location: business.location,
+            business_staff: business.staff,
+          },
+        });
+
+      if (error) {
+        showToast(error.message, "error");
+        return;
+      }
+
+      showToast(
+        "Business information updated! 🏢",
+        "success"
+      );
+    };
 
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleUpdatePassword = async () => {
     if (!newPassword) {
-      alert("Please enter a new password");
+      showToast("Please enter a new password", "error");
       return;
     }
 
     if (newPassword.length < 6) {
-      alert("Password must be at least 6 characters");
+      showToast(
+        "Password must be at least 6 characters",
+        "error"
+      );
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      alert("Passwords do not match");
+      showToast("Passwords do not match", "error");
       return;
     }
 
@@ -188,17 +228,22 @@ export default function AccountSettingsPage() {
     });
 
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
 
-    alert("Password updated successfully!");
+    showToast(
+      "Password updated successfully! 🔒",
+      "success"
+    );
 
     setNewPassword("");
     setConfirmPassword("");
   };
 
   return (
+    <>
+      {ToastComponent}
     <AppLayout>
       <div className="p-8">
         {/* ── Top Bar ── */}
@@ -243,10 +288,19 @@ export default function AccountSettingsPage() {
                 <div className="flex items-center gap-5 mb-8">
                   <div className="relative">
                     <div className="w-20 h-20 rounded-full bg-primary-200 flex items-center justify-center overflow-hidden">
-                      {photoPreview ? (
-                        <img src={photoPreview} alt="avatar" className="w-full h-full object-cover" />
+                      {photoPreview || user?.user_metadata?.avatar_url ? (
+                        <img
+                          src={
+                            photoPreview ||
+                            user?.user_metadata?.avatar_url
+                          }
+                          alt="avatar"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
-                        <span className="text-primary-800 text-2xl font-bold">{initials}</span>
+                        <span className="text-primary-800 text-2xl font-bold">
+                          {initials}
+                        </span>
                       )}
                     </div>
                     <button
@@ -264,7 +318,7 @@ export default function AccountSettingsPage() {
                     >
                       Upload Photo
                     </button>
-                    {photoPreview && (
+                    {(photoPreview || user?.user_metadata?.avatar_url) && (
                       <button
                         onClick={() => setPhotoPreview(null)}
                         className="text-sm text-red-500 font-medium hover:underline"
@@ -336,9 +390,6 @@ export default function AccountSettingsPage() {
                 </div>
 
                 <div className="flex items-center justify-end gap-3">
-                  <button className="border border-gray-200 text-gray-600 text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
-                    Cancel
-                  </button>
                   <button
                     onClick={handleSaveProfile}
                     className="bg-primary-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-700 transition-colors"
@@ -355,7 +406,6 @@ export default function AccountSettingsPage() {
                 <div className="bg-white rounded-2xl shadow-sm p-8">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold text-primary-900">Security & Password</h2>
-                    <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded">PREVIEW ONLY</span>
                   </div>
 
                   <div className="mb-4">
@@ -403,59 +453,6 @@ export default function AccountSettingsPage() {
                     className="mt-4 bg-primary-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-700 transition-colors"
                   >
                     Update Password
-                  </button>
-                </div>
-
-                {/* Danger Zone */}
-                <div className="bg-white rounded-2xl shadow-sm p-8 border border-red-100">
-                  <h3 className="text-base font-bold text-red-500 mb-1">Danger Zone</h3>
-                  <p className="text-sm text-gray-400 mb-4">
-                    Permanently delete your account and all associated data. This action cannot be undone.
-                  </p>
-                  <button className="border border-red-400 text-red-500 text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-red-50 transition-colors">
-                    Delete Account
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* ── BUSINESS TAB ── */}
-            {activeTab === "business" && (
-              <div className="bg-white rounded-2xl shadow-sm p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-primary-900">Business Information</h2>
-                  <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded">PREVIEW ONLY</span>
-                </div>
-                <div className="grid grid-cols-2 gap-5 mb-5">
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Business Name</label>
-                    <input type="text" value={business.name} onChange={(e) => setBusiness({ ...business, name: e.target.value })}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Business Type</label>
-                    <div className="relative">
-                      <select value={business.type} onChange={(e) => setBusiness({ ...business, type: e.target.value })}
-                        className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors bg-white pr-8">
-                        {["Restaurant", "Catering", "Supplier", "Distributor", "Other"].map((t) => <option key={t}>{t}</option>)}
-                      </select>
-                      <ChevronDown size={14} className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Location / City</label>
-                    <input type="text" value={business.location} onChange={(e) => setBusiness({ ...business, location: e.target.value })}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Number of Staff</label>
-                    <input type="number" value={business.staff} onChange={(e) => setBusiness({ ...business, staff: e.target.value })}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-400 transition-colors" />
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <button className="bg-primary-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-700 transition-colors">
-                    Save Changes
                   </button>
                 </div>
               </div>
@@ -516,5 +513,6 @@ export default function AccountSettingsPage() {
         </div>
       </div>
     </AppLayout>
+    </>
   );
 }

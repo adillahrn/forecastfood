@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { supabase } from "../services/supabase";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../components/ui/Toast";
 import { useEffect } from "react";
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
+  const { showToast, ToastComponent } = useToast();
 
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,12 +23,18 @@ export default function ResetPasswordPage() {
     setLoading(false);
 
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
 
-    alert("Password updated successfully!");
-    navigate("/login");
+    showToast(
+        "Password updated successfully! 🔒",
+        "success"
+        );
+
+        setTimeout(() => {
+        navigate("/login");
+        }, 1000);
   };
 
   useEffect(() => {
@@ -39,6 +47,9 @@ export default function ResetPasswordPage() {
     }, []);
 
   return (
+    <>
+        {ToastComponent}
+
     <div className="min-h-screen flex items-center justify-center bg-[#f5f5f0]">
       <form
         onSubmit={handleReset}
@@ -49,11 +60,13 @@ export default function ResetPasswordPage() {
         </h1>
 
         <input
-          type="password"
-          placeholder="New Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border rounded-xl px-4 py-3 mb-4"
+            type="password"
+            placeholder="New Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            minLength={6}
+            required
+            className="w-full border rounded-xl px-4 py-3 mb-4"
         />
 
         <button
@@ -65,5 +78,6 @@ export default function ResetPasswordPage() {
         </button>
       </form>
     </div>
+    </>
   );
 }
