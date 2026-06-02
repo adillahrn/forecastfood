@@ -140,9 +140,7 @@ export default function PredictionResultPage() {
     fetchPrediction();
   }, [id]);
 
-  const isBatch = mode === "batch";
-    mode === "batch" ||
-    (predictionData?.predictions?.length > 1);
+  const isBatch = mode === "batch" || mode === "csv" || (predictionData?.predictions?.length > 1);
 
   // Normalise data
   const historyPredictions = historyPrediction || [];
