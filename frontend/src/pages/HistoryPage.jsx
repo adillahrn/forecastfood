@@ -35,10 +35,15 @@ export default function HistoryPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedId, setExpandedId] = useState(null);
 
+  const ITEMS_PER_PAGE = 10;
+
   useEffect(() => {
     const fetchHistory = async () => {
       try {
         const res = await api.get("/history");
+
+        console.log(res.data.data);
+        
         setHistoryData(res.data.data.sessions || []);
       } catch (error) {
         console.error("Error fetching history:", error);
@@ -48,6 +53,10 @@ export default function HistoryPage() {
     };
     fetchHistory();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterStatus, dateFrom, dateTo]);
 
   const handleDelete = async (id) => {
     if (!confirm("Hapus sesi prediksi ini?")) return;
@@ -70,6 +79,59 @@ export default function HistoryPage() {
       (filterStatus === "Failed" && h.status === "failed");
     return matchSearch && matchStatus;
   });
+
+  const totalPages = Math.ceil(
+    filtered.length / ITEMS_PER_PAGE
+  );
+
+  console.log("TOTAL DATABASE:", historyData.length);
+  console.log("FILTERED:", filtered.length);
+  console.log("PAGES:", totalPages);
+
+  const paginatedData = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  console.log("Total History:", historyData.length);
+  console.log("Filtered:", filtered.length);
+  console.log("Total Pages:", totalPages);
+
+  const getPageNumbers = () => {
+    const pages = [];
+
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        pages.push(1, 2, 3, 4, 5, "...", totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(
+          1,
+          "...",
+          totalPages - 4,
+          totalPages - 3,
+          totalPages - 2,
+          totalPages - 1,
+          totalPages
+        );
+      } else {
+        pages.push(
+          1,
+          "...",
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+          "...",
+          totalPages
+        );
+      }
+    }
+
+    return pages;
+  };
 
   return (
     <AppLayout>
@@ -101,7 +163,7 @@ export default function HistoryPage() {
               <Search size={15} className="text-gray-400" />
               <input
                 type="text"
-                placeholder="Search Session ID or Item..."
+                placeholder="Search Session ID"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="text-sm text-gray-600 outline-none bg-transparent flex-1"
@@ -165,7 +227,7 @@ export default function HistoryPage() {
               <p className="text-xs text-gray-400 mt-1">Upload data and run a prediction to get started!</p>
             </div>
           ) : (
-            filtered.map((h) => (
+            paginatedData.map((h) => (
               <div key={h.id}>
                 <div className="grid grid-cols-7 px-6 py-4 items-center border-b border-gray-50 hover:bg-gray-50 transition-colors">
                   <span className="col-span-1 text-sm font-semibold text-primary-700">
@@ -246,30 +308,54 @@ export default function HistoryPage() {
             ))
           )}
 
-          {/* Pagination */}
+        {/* Pagination */}
           <div className="flex items-center justify-between px-6 py-4">
             <p className="text-xs text-gray-400">
-              Showing {filtered.length} of {historyData.length} sessions
+              Showing {paginatedData.length} of {filtered.length} sessions
             </p>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors"
-              >
-                <ChevronLeft size={14} />
-              </button>
-              {[1, 2, 3].map((n) => (
+
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
                 <button
-                  key={n}
-                  onClick={() => setCurrentPage(n)}
-                  className={`w-7 h-7 rounded-lg text-xs font-semibold transition-colors ${
-                    currentPage === n ? "bg-primary-800 text-white" : "text-gray-400 hover:bg-gray-100"
-                  }`}
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 disabled:opacity-30"
                 >
-                  {n}
+                  <ChevronLeft size={14} />
                 </button>
-              ))}
-            </div>
+
+                {getPageNumbers().map((n, i) =>
+                  n === "..." ? (
+                    <span
+                      key={i}
+                      className="w-7 h-7 flex items-center justify-center text-gray-400"
+                    >
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={n}
+                      onClick={() => setCurrentPage(n)}
+                      className={`w-7 h-7 rounded-lg text-xs font-semibold ${
+                        currentPage === n
+                          ? "bg-primary-800 text-white"
+                          : "text-gray-400 hover:bg-gray-100"
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  )
+                )}
+
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 disabled:opacity-30"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
