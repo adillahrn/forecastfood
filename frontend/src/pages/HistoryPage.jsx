@@ -198,10 +198,6 @@ export default function HistoryPage() {
               </button>
             ))}
           </div>
-          <button className="flex items-center gap-2 text-sm text-primary-700 bg-primary-50 border border-primary-200 rounded-xl px-4 py-2 hover:bg-primary-100 transition-colors font-medium">
-            <Download size={15} />
-            Export Report
-          </button>
         </div>
 
         {/* ── History Table ── */}
