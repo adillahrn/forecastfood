@@ -135,9 +135,6 @@ export default function AccountSettingsPage() {
             <button className="w-9 h-9 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:text-primary-800 transition-colors">
               <Bell size={16} />
             </button>
-            <div className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-800 text-xs font-bold">
-              {initials}
-            </div>
           </div>
         </div>
 

@@ -142,18 +142,6 @@ export default function HistoryPage() {
             <h1 className="text-2xl font-bold text-primary-900">Prediction History</h1>
             <p className="text-gray-400 text-sm mt-0.5">View all past forecasting sessions</p>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="w-9 h-9 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:text-primary-800 transition-colors">
-              <Bell size={16} />
-            </button>
-            <button
-              onClick={() => navigate("/settings")}
-              className="w-9 h-9 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:text-primary-800 transition-colors"
-            >
-              <Settings size={16} />
-            </button>
-            <div className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-800 text-xs font-bold">U</div>
-          </div>
         </div>
 
         {/* ── Filter Bar ── */}

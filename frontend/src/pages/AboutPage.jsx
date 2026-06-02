@@ -47,7 +47,7 @@ const cycle = [
     num: "3",
     icon: <LayoutDashboard size={22} className="text-white" />,
     title: "Dynamic Strategy",
-    desc: "Receive automated stock recommendations and alerts to prevent both overstocking and stock-outs.",
+    desc: "Generates automated stock recommendations and early warnings to prevent overstocking and stock shortages.",
   },
 ];
 
@@ -73,25 +73,6 @@ export default function AboutPage() {
           <div>
             <h1 className="text-2xl font-bold text-primary-900">About This System</h1>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search documentation..."
-                className="bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-500 outline-none focus:border-primary-400 w-56"
-              />
-            </div>
-            <button className="w-9 h-9 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:text-primary-800 transition-colors">
-              <Bell size={16} />
-            </button>
-            <button
-              onClick={() => navigate("/settings")}
-              className="w-9 h-9 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:text-primary-800 transition-colors"
-            >
-              <Settings size={16} />
-            </button>
-            <div className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-800 text-xs font-bold">U</div>
-          </div>
         </div>
       )}
 
@@ -108,12 +89,9 @@ export default function AboutPage() {
             Combatting food waste through predictive intelligence.
           </h2>
           <p className="text-gray-500 text-sm leading-relaxed mb-6">
-            ForecastFood is an advanced Eco-Logistics AI designed to bridge
-            the gap between supply chain volatility and kitchen efficiency. By
-            analyzing historical consumption patterns, seasonal trends, and
-            local event data, we provide kitchen managers with precise
-            inventory recommendations that reduce overhead costs and
-            environmental impact.
+            ForecastFood is an advanced Eco-Logistics AI platform designed to bridge the gap between supply chain volatility and kitchen efficiency.
+
+            By analyzing historical consumption patterns, seasonal trends, and local event data, the system delivers precise inventory recommendations that help reduce operational costs and minimize environmental impact.
           </p>
           <div className="flex items-center gap-3">
             <button
@@ -145,16 +123,12 @@ export default function AboutPage() {
         </div>
 
         {/* Right — decorative card */}
-        <div className="bg-primary-900 rounded-2xl p-8 flex flex-col items-center justify-center min-h-[220px] relative overflow-hidden">
-          <div
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage: "radial-gradient(circle at 30% 50%, #4ade80 0%, transparent 60%), radial-gradient(circle at 70% 50%, #166534 0%, transparent 60%)",
-            }}
+        <div className="w-full h-64 bg-primary-100 rounded-2xl overflow-hidden">
+          <img
+            src="src/assets/about-ff.png"
+            alt="ForecastFood Eco-Logistics AI"
+            className="w-full h-full object-cover"
           />
-          <p className="text-primary-300 text-xs font-semibold uppercase tracking-widest mb-3 relative z-10">About</p>
-          <p className="text-white text-5xl font-black relative z-10">FF</p>
-          <p className="text-primary-400 text-sm mt-2 relative z-10">Eco-Logistics AI</p>
         </div>
       </div>
 

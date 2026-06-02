@@ -95,15 +95,6 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* Settings */}
-        <button
-          onClick={() => navigate("/settings")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-primary-800 transition-all mb-1"
-        >
-          <Settings size={18} />
-          Settings
-        </button>
-
         {/* Logout — memanggil signOut() Supabase secara nyata */}
         <button
           id="logout-btn"

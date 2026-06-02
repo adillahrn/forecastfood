@@ -54,7 +54,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-gray-200 mt-10 pt-6 flex items-center justify-between">
           <p className="text-gray-400 text-xs">
-            © 2024 ForecastFood Eco-Logistics AI. All rights reserved.
+            © 2026 ForecastFood Eco-Logistics AI. All rights reserved.
           </p>
           <div className="flex gap-6">
             <a href="#" className="text-gray-400 text-xs hover:text-primary-800 transition-colors">
