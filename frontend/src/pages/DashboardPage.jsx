@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../services/supabase";
 import {
   BarChart,
   Bar,
@@ -16,8 +18,6 @@ import {
   Settings,
   Filter,
   Plus,
-  ChevronLeft,
-  ChevronRight,
   CalendarDays,
   ChefHat,
   Users,
@@ -25,22 +25,8 @@ import {
 import AppLayout from "../components/layout/AppLayout";
 import api from "../services/api";
 
-// ── Ilustrasi distribusi porsi per kategori makanan (dari scaler_y_mean model)
-const foodCategoryData = [
-  { category: "Meat", avg_portions: 420 },
-  { category: "Vegetables", avg_portions: 390 },
-  { category: "Baked Goods", avg_portions: 375 },
-  { category: "Dairy Products", avg_portions: 355 },
-  { category: "Fruits", avg_portions: 340 },
-];
-
 // ── Contoh riwayat prediksi terbaru (akan digantikan data real dari Supabase)
 
-const statusStyle = {
-  completed: "bg-green-100 text-green-700",
-  processing: "bg-blue-100 text-blue-700",
-  failed: "bg-red-100 text-red-600",
-};
 
 const CustomBar = (props) => {
   const { x, y, width, height, index } = props;
@@ -56,6 +42,9 @@ const CustomBar = (props) => {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  console.log("Current User:", user);
   const [dateRange] = useState(new Date().toLocaleDateString("id-ID", {
     day: "numeric", month: "long", year: "numeric",
   }));
@@ -68,17 +57,102 @@ export default function DashboardPage() {
 
   const [recentPredictions, setRecentPredictions] = useState([]);
 
+  const totalPredictions = recentPredictions.length;
+
+  const eventCounts = recentPredictions.reduce((acc, item) => {
+    acc[item.event_type] = (acc[item.event_type] || 0) + 1;
+    return acc;
+  }, {});
+
+  const eventDistribution = Object.entries(eventCounts)
+    .map(([name, count]) => ({
+      name,
+      value: Math.round((count / totalPredictions) * 100),
+    }))
+    .sort((a, b) => b.value - a.value);
+
+  const foodStats = recentPredictions.reduce((acc, item) => {
+    const food = item.type_of_food;
+
+    if (!acc[food]) {
+      acc[food] = {
+        total: 0,
+        count: 0,
+      };
+    }
+
+    acc[food].total += Number(item.predicted_quantity || 0);
+    acc[food].count += 1;
+
+    return acc;
+  }, {});
+
+  const foodCategoryData = Object.entries(foodStats)
+    .map(([category, data]) => ({
+      category,
+      avg_portions: Math.round(data.total / data.count),
+    }))
+    .sort((a, b) => b.avg_portions - a.avg_portions);
+
+  const totalPortions = recentPredictions.reduce(
+    (sum, item) => sum + Number(item.predicted_quantity || 0),
+    0
+  );
+
+  const uniqueEvents = new Set(
+    recentPredictions.map((item) => item.history_id)
+  ).size;
+
+  const latestPrediction = recentPredictions[0];
+
+  let lastUpdated = "-";
+
+  if (latestPrediction?.created_at) {
+    const diffMs =
+      new Date() - new Date(latestPrediction.created_at);
+
+    const minutes = Math.floor(diffMs / 60000);
+    const hours = Math.floor(minutes / 60);
+
+    if (hours > 0) {
+      lastUpdated = `${hours} jam lalu`;
+    } else {
+      lastUpdated = `${minutes} menit lalu`;
+    }
+  }
+
   useEffect(() => {
     api.get("/health")
       .then((res) => console.log("✅ Backend connected:", res.data))
       .catch((err) => console.error("❌ Backend error:", err));
-
-    api.get("/predictions")
-    .then((res) => {
-      setRecentPredictions(res.data);
-    })
-    .catch((err) => console.error(err));
   }, []);
+    useEffect(() => {
+      if (!user) return;
+
+      const fetchPredictions = async () => {
+        const { data, error } = await supabase
+          .from("predictions")
+          .select("*")
+          .eq("user_id", user.id);
+
+        if (error) {
+          console.error("SUPABASE ERROR:", error);
+          return;
+        }
+
+        console.log("PREDICTIONS:", data);
+
+        setRecentPredictions(
+          data.sort(
+            (a, b) =>
+              new Date(b.created_at) -
+              new Date(a.created_at)
+          )
+        );
+      };
+
+      fetchPredictions();
+    }, [user]);
 
   return (
     <AppLayout>
@@ -90,8 +164,6 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-500">
               <CalendarDays size={14} />
               <span>{dateRange}</span>
-              <ChevronLeft size={14} />
-              <ChevronRight size={14} />
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -115,28 +187,24 @@ export default function DashboardPage() {
             {
               icon: <TrendingUp size={18} />,
               label: "Total Prediksi",
-              value: "12,482",
-              badge: "+12%",
-              badgeColor: "bg-green-100 text-green-700",
+              value: totalPredictions,
             },
             {
               icon: <CalendarDays size={18} />,
               label: "Acara Tercatat",
-              value: "1,240",
-              badge: "Aktif",
-              badgeColor: "bg-blue-100 text-blue-700",
+              value: uniqueEvents,
             },
             {
               icon: <Leaf size={18} />,
-              label: "Est. Waste Berkurang",
-              value: "18.5%",
-              badge: "+24%",
+              label: "Total Porsi Direkomendasikan",
+              value: totalPortions.toLocaleString(),
+              badge: "Real Data",
               badgeColor: "bg-green-100 text-green-700",
             },
             {
               icon: <RefreshCw size={18} />,
               label: "Terakhir Diperbarui",
-              value: "14m lalu",
+              value: lastUpdated,
               badge: "Live",
               badgeColor: "bg-red-100 text-red-600",
             },
@@ -168,22 +236,43 @@ export default function DashboardPage() {
                 Berdasarkan hasil training model AI (scaler mean ≈ 411 porsi)
               </p>
             </div>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={foodCategoryData} barGap={4}>
-                <XAxis
-                  dataKey="category"
-                  tick={{ fontSize: 10, fill: "#9ca3af" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis hide />
-                <Tooltip
-                  contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-                  formatter={(value) => [`${value} porsi`, "Rata-rata"]}
-                />
-                <Bar dataKey="avg_portions" radius={[4, 4, 0, 0]} shape={<CustomBar />} />
-              </BarChart>
-            </ResponsiveContainer>
+
+            {foodCategoryData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={foodCategoryData} barGap={4}>
+                  <XAxis
+                    dataKey="category"
+                    tick={{ fontSize: 10, fill: "#9ca3af" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis hide />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "8px",
+                      border: "none",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    }}
+                    formatter={(value) => [`${value} porsi`, "Rata-rata"]}
+                  />
+                  <Bar
+                    dataKey="avg_portions"
+                    radius={[4, 4, 0, 0]}
+                    shape={<CustomBar />}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[200px] flex flex-col items-center justify-center text-center">
+                <ChefHat size={32} className="text-gray-300 mb-3" />
+                <p className="text-sm font-medium text-gray-500">
+                  Belum ada data prediksi
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Lakukan prediksi pertama untuk melihat statistik makanan
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Top Event Types */}
@@ -192,30 +281,51 @@ export default function DashboardPage() {
               <h2 className="text-sm font-bold text-primary-900">
                 Distribusi Tipe Acara
               </h2>
-              <button className="text-gray-400 hover:text-primary-800">
-                <Settings size={14} />
-              </button>
             </div>
-            <div className="flex flex-col gap-4">
-              {[
-                { name: "Wedding", value: 38, color: "bg-primary-800" },
-                { name: "Corporate", value: 28, color: "bg-primary-600" },
-                { name: "Social Gathering", value: 22, color: "bg-primary-400" },
-                { name: "Birthday", value: 12, color: "bg-primary-200" },
-              ].map((item, i) => (
-                <div key={i}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-sm text-gray-700">{item.name}</p>
-                    <p className="text-sm font-semibold text-primary-800">{item.value}%</p>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-1.5">
-                    <div
-                      className={`${item.color} h-1.5 rounded-full transition-all`}
-                      style={{ width: `${item.value}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+            {eventDistribution.length > 0 ? (
+              <div className="flex flex-col gap-4">
+                {eventDistribution
+                  .map((item, i) => ({
+                    ...item,
+                    color: [
+                      "bg-primary-800",
+                      "bg-primary-600",
+                      "bg-primary-400",
+                      "bg-primary-200",
+                    ][i % 4],
+                  }))
+                  .map((item, i) => (
+                    <div key={i}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-sm text-gray-700">
+                          {item.name}
+                        </p>
+
+                        <p className="text-sm font-semibold text-primary-800">
+                          {item.value}%
+                        </p>
+                      </div>
+
+                      <div className="w-full bg-gray-100 rounded-full h-1.5">
+                        <div
+                          className={`${item.color} h-1.5 rounded-full transition-all`}
+                          style={{ width: `${item.value}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <div className="h-[200px] flex flex-col items-center justify-center text-center">
+                <CalendarDays size={32} className="text-gray-300 mb-3" />
+                <p className="text-sm font-medium text-gray-500">
+                  Belum ada data acara
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Distribusi acara akan muncul setelah melakukan prediksi
+                </p>
+              </div>
+            )}
             </div>
           </div>
         </div>
@@ -229,7 +339,6 @@ export default function DashboardPage() {
         >
           <Plus size={20} />
         </button>
-      </div>
     </AppLayout>
   );
 }
