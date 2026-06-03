@@ -1,0 +1,6 @@
+type_of_food,number_of_guests,event_type,storage_conditions,seasonality,preparation_method,wastage_food_amount
+Meat,300,Corporate,Refrigerated,All Seasons,Buffet,10.5
+Vegetables,150,Wedding,Room Temperature,Summer,Finger Food,5.2
+Dairy Products,50,Birthday,Refrigerated,Winter,Sit-down Dinner,2.1
+Baked Goods,500,Social Gathering,Room Temperature,All Seasons,Buffet,20.0
+Fruits,100,Corporate,Refrigerated,Summer,Sit-down Dinner,8.4
