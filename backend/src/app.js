@@ -31,6 +31,8 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+app.use("/api", routes);
+
 // ── Error Handler ──
 app.use(errorHandler);
 
