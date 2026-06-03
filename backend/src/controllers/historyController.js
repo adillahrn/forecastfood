@@ -4,23 +4,17 @@ import { sendSuccess, sendError } from "../utils/responseHelper.js";
 // GET /api/history
 export const getAllHistory = async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
 
     const { data, error, count } = await supabase
       .from("prediction_history")
       .select("*", { count: "exact" })
-      .eq("user_id", req.user.id)  // ← tambah ini
-      .order("created_at", { ascending: false })
-      .range(from, to);
+      .eq("user_id", req.user.id)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
     return sendSuccess(res, 200, "Berhasil mengambil riwayat", {
       total: count,
-      page: parseInt(page),
-      limit: parseInt(limit),
       sessions: data,
     });
   } catch (error) {

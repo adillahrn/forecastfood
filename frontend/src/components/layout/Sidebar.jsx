@@ -86,23 +86,22 @@ export default function Sidebar() {
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 cursor-pointer mb-1"
           onClick={() => navigate("/settings")}
         >
-          <div className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-800 text-xs font-bold shrink-0">
-            {initials}
+          <div className="w-8 h-8 rounded-full bg-primary-200 overflow-hidden shrink-0">
+            {user?.user_metadata?.avatar_url ? (
+              <img
+                src={user.user_metadata.avatar_url}
+                alt="avatar"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              initials
+            )}
           </div>
           <div className="leading-tight min-w-0">
             <p className="text-gray-800 text-sm font-medium truncate">{displayName}</p>
             <p className="text-gray-400 text-xs truncate">{displayEmail}</p>
           </div>
         </div>
-
-        {/* Settings */}
-        <button
-          onClick={() => navigate("/settings")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-primary-800 transition-all mb-1"
-        >
-          <Settings size={18} />
-          Settings
-        </button>
 
         {/* Logout — memanggil signOut() Supabase secara nyata */}
         <button

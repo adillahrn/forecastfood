@@ -21,7 +21,7 @@ export default function LandingPage() {
           {/* Left */}
           <div>
             <p className="text-primary-700 text-sm font-semibold tracking-widest uppercase mb-4">
-              Eco-Logistics AI
+              AI-Powered Event Consumption Planning
             </p>
             <h1 className="text-5xl font-bold text-primary-900 leading-tight mb-6">
               Predict Smarter,
@@ -39,12 +39,6 @@ export default function LandingPage() {
                 className="bg-primary-800 text-white font-semibold px-7 py-3 rounded-xl hover:bg-primary-700 transition-colors"
               >
                 Start Forecasting
-              </button>
-              <button
-                onClick={() => navigate("/about")}
-                className="border border-primary-800 text-primary-800 font-semibold px-7 py-3 rounded-xl hover:bg-primary-50 transition-colors"
-              >
-                See Demo
               </button>
             </div>
           </div>
@@ -114,17 +108,17 @@ export default function LandingPage() {
               {
                 icon: <Radio className="w-5 h-5 text-white" />,
                 title: "AI-Powered Prediction",
-                desc: "Our neural networks analyze historical sales, seasonal trends, and local events to generate highly accurate demand curves.",
+                desc: "Predict food requirements based on event type, guest count, historical consumption patterns, seasonal trends.",
               },
               {
                 icon: <Package className="w-5 h-5 text-white" />,
-                title: "Stock Optimization",
-                desc: "Dynamic inventory thresholds that adjust in real-time to prevent overstocking and costly ingredient spoilage.",
+                title: "Smart Portion Optimaization",
+                desc: "Automatically calculates optimal portion sizes to prevent overproduction, stock waste, budget inefficiency.",
               },
               {
                 icon: <BarChart2 className="w-5 h-5 text-white" />,
-                title: "Waste Reduction Dashboard",
-                desc: "Track your carbon footprint and financial savings side-by-side with our comprehensive sustainability metrics.",
+                title: "Waste Reduction Intelligence",
+                desc: "Track and reduce food waste precentage, cost inefficiency, environmental impact of overproduction.",
               },
             ].map((f, i) => (
               <div
@@ -156,20 +150,20 @@ export default function LandingPage() {
               {
                 num: "1",
                 icon: <Upload className="w-6 h-6 text-primary-700" />,
-                title: "Upload Data",
-                desc: "Connect your POS or ERP system to securely sync historical inventory data.",
+                title: "Upload Event Data",
+                desc: "Input event details such as type, guest count, and menu plan.",
               },
               {
                 num: "2",
                 icon: <Sparkles className="w-6 h-6 text-primary-700" />,
-                title: "Get Prediction",
-                desc: "Our AI engine processes the data and generates a forecast for the upcoming cycle.",
+                title: "Get AI Prediction",
+                desc: "ForecastFood analyzes historical patterns and generates food quantity recommendations.",
               },
               {
                 num: "3",
                 icon: <CheckCircle className="w-6 h-6 text-primary-700" />,
-                title: "Optimize Stock",
-                desc: "Order precisely what you need, reducing food waste and boosting profit margins.",
+                title: "Optimize Preparation",
+                desc: "Use insights to prepare exact portions and reduce waste before the event starts.",
               },
             ].map((s, i) => (
               <div key={i} className="text-center relative">
@@ -196,11 +190,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold text-white mb-3">
-              Ready to transform your logistics?
+              Ready to optimize every event you manage?
             </h2>
             <p className="text-primary-200 text-sm">
-              Join the network of professional kitchens and food suppliers who
-              are leading the way in operational efficiency and sustainability.
+              Join event organizers and catering teams using AI-powered food forecasting.
             </p>
           </div>
           <button

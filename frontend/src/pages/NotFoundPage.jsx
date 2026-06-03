@@ -50,12 +50,6 @@ export default function NotFoundPage() {
               >
                 Back to Home
               </button>
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="bg-primary-600 text-white font-semibold px-7 py-3 rounded-xl hover:bg-primary-500 transition-colors"
-              >
-                Go to Dashboard
-              </button>
             </div>
           </div>
         </div>

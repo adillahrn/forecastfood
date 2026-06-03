@@ -6,11 +6,17 @@ import { authenticate } from "../middleware/validateRequest.js";
 
 const router = express.Router();
 
-// Semua route butuh authentication
+// public routes
+router.get("/health", (req, res) => {
+  res.json({ ok: true });
+});
+
+// protected routes
 router.use(authenticate);
 
 router.use("/predictions", predictionRoutes);
 router.use("/stocks", stockRoutes);
 router.use("/history", historyRoutes);
+
 
 export default router;

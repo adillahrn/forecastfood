@@ -39,7 +39,7 @@ export default function Navbar() {
               ForecastFood
             </p>
             <p className="text-primary-600 text-xs">
-              ECO-LOGISTICS AI
+              AI-Powered Event Consumption Planning
             </p>
           </div>
         </Link>

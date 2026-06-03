@@ -13,8 +13,7 @@ export default function Footer() {
               <p className="text-primary-800 font-bold text-sm">ForecastFood</p>
             </div>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Empowering the food and beverage industry with intelligent data
-              insights to build a zero-waste future for global logistics.
+              Empowering event organizers and food providers with intelligent forecasting to reduce waste and optimize food planning.
             </p>
           </div>
 
@@ -54,7 +53,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-gray-200 mt-10 pt-6 flex items-center justify-between">
           <p className="text-gray-400 text-xs">
-            © 2024 ForecastFood Eco-Logistics AI. All rights reserved.
+            © 2026 ForecastFood Eco-Logistics AI. All rights reserved.
           </p>
           <div className="flex gap-6">
             <a href="#" className="text-gray-400 text-xs hover:text-primary-800 transition-colors">
